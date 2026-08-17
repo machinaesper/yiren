@@ -1,12 +1,16 @@
 /**
  * sync-notion.mjs
- * อ่าน database ของ Notion -> เทียบชื่อกับดัชนี GW2 -> เขียน items.json ให้หน้าเว็บ
+ * อ่าน database ของ Notion -> เขียน items.json + ดึงรูปไอเทมมาเก็บไว้ใน icons/
+ *
+ * ทำไมต้องโหลดรูปมาเก็บเอง: ลิงก์ไฟล์ที่ Notion คืนมาเป็น URL แบบมีลายเซ็น หมดอายุราว 1 ชั่วโมง
+ * ถ้าเอาไปแปะบนเว็บตรง ๆ พรุ่งนี้รูปแตกหมด จึงต้อง mirror ลง repo ให้เป็นของเราเอง
  *
  * ต้องมี env:
  *   NOTION_TOKEN        โทเคนของ internal integration
  *   NOTION_DATABASE_ID  id ของ database (32 ตัวอักษรใน URL)
  */
-import { readFile, writeFile } from "node:fs/promises";
+import { readFile, writeFile, mkdir, readdir, unlink, access } from "node:fs/promises";
+import path from "node:path";
 
 const TOKEN = process.env.NOTION_TOKEN;
 const DB = (process.env.NOTION_DATABASE_ID || "").replace(/-/g, "");
@@ -15,32 +19,11 @@ if (!TOKEN || !DB) {
   process.exit(1);
 }
 
-const RENDER = "https://render.guildwars2.com/file/";
+const ICON_DIR = "icons";
+const MANIFEST = "data/icon-manifest.json";
+const MAX_ICON_BYTES = 3 * 1024 * 1024;
 
-function normalize(name) {
-  return String(name || "")
-    .normalize("NFKC")
-    .replace(/[\u2018\u2019]/g, "'")
-    .replace(/[\u201C\u201D]/g, '"')
-    .replace(/\s+/g, " ")
-    .trim()
-    .toLowerCase();
-}
-
-/**
- * ถอด chat link ของไอเทม เช่น "[&AgEdbwAA]" -> 28445
- * รูปแบบ: byte0 = ชนิด (2 = item, 10 = skin), byte1 = จำนวน, byte2-4 = id แบบ little endian
- */
-export function decodeChatLink(text) {
-  const m = /\[?&?([A-Za-z0-9+/=]{6,})\]?/.exec(String(text || "").trim());
-  if (!m) return null;
-  let buf;
-  try { buf = Buffer.from(m[1], "base64"); } catch { return null; }
-  if (buf.length < 5) return null;
-  const kind = buf[0] === 2 ? "items" : buf[0] === 10 ? "skins" : null;
-  if (!kind) return null;
-  return { kind, id: buf[2] | (buf[3] << 8) | (buf[4] << 16) };
-}
+const exists = p => access(p).then(() => true, () => false);
 
 /* ---------- Notion ---------- */
 
@@ -67,55 +50,114 @@ async function fetchRows() {
 
 const text = p => (p?.title || p?.rich_text || []).map(t => t.plain_text).join("").trim();
 
-function toItem(page) {
+function firstFile(prop) {
+  const f = (prop?.files || [])[0];
+  if (!f) return null;
+  return { url: f.file?.url || f.external?.url || null, name: f.name || "" };
+}
+
+function toRow(page) {
   const p = page.properties;
   return {
+    id: page.id.replace(/-/g, ""),
+    edited: page.last_edited_time,
     item: text(p["Item"]),
-    encounter: p["Encounter"]?.select?.name || "",
+    category: p["Category"]?.select?.name || "",
     price: text(p["Price"]) || "—",
     stock: typeof p["Stock"]?.number === "number" ? p["Stock"].number : 0,
     tags: (p["Tags"]?.multi_select || []).map(t => t.name),
     note: text(p["Note"]),
-    chatLink: text(p["Chat link"]),
+    file: firstFile(p["Icon"]),
     listed: p["Listed"]?.checkbox !== false, // ไม่มีคอลัมน์นี้ = ถือว่าขึ้นเว็บ
   };
 }
 
+/* ---------- รูป ---------- */
+
+function extFor(file, contentType) {
+  const fromName = path.extname(file.name || "").toLowerCase();
+  if ([".png", ".jpg", ".jpeg", ".webp", ".gif", ".avif"].includes(fromName)) return fromName;
+  const map = { "image/png": ".png", "image/jpeg": ".jpg", "image/webp": ".webp", "image/gif": ".gif", "image/avif": ".avif" };
+  return map[(contentType || "").split(";")[0].trim()] || ".png";
+}
+
+async function syncIcon(row, manifest) {
+  if (!row.file?.url) return null;
+
+  const known = manifest[row.id];
+  // แก้อย่างอื่นในแถวก็ทำให้ last_edited_time ขยับ แต่โหลดรูปซ้ำไม่กี่ KB ถือว่าคุ้มกว่าเสี่ยงรูปไม่อัปเดต
+  if (known && known.edited === row.edited && await exists(path.join(ICON_DIR, known.file))) {
+    return known.file;
+  }
+
+  const res = await fetch(row.file.url);
+  if (!res.ok) {
+    console.warn(`  โหลดรูปไม่สำเร็จ (${res.status}) — ${row.item}`);
+    return known?.file ?? null;
+  }
+  const buf = Buffer.from(await res.arrayBuffer());
+  if (buf.length > MAX_ICON_BYTES) {
+    console.warn(`  รูปใหญ่เกิน ${(buf.length / 1e6).toFixed(1)}MB ข้ามไว้ก่อน — ${row.item}`);
+    return known?.file ?? null;
+  }
+
+  const name = row.id + extFor(row.file, res.headers.get("content-type"));
+  // ถ้านามสกุลเปลี่ยน ลบไฟล์เดิมทิ้งกันขยะค้าง
+  if (known?.file && known.file !== name) await unlink(path.join(ICON_DIR, known.file)).catch(() => {});
+  await writeFile(path.join(ICON_DIR, name), buf);
+  manifest[row.id] = { file: name, edited: row.edited };
+  console.log(`  อัปเดตรูป — ${row.item}`);
+  return name;
+}
+
 /* ---------- ประกอบไฟล์ ---------- */
 
-const index = JSON.parse(await readFile("data/gw2-index.json", "utf8"));
-const rows = (await fetchRows()).map(toItem).filter(r => r.listed && r.item);
+await mkdir(ICON_DIR, { recursive: true });
+await mkdir("data", { recursive: true });
 
-const missing = [];
-const items = rows.map(r => {
-  let icon = null;
+const manifest = await readFile(MANIFEST, "utf8").then(JSON.parse).catch(() => ({}));
+const rows = (await fetchRows()).map(toRow).filter(r => r.listed && r.item);
 
-  const chat = decodeChatLink(r.chatLink);
-  if (chat) icon = index.byId[`${chat.kind}:${chat.id}`] || null;
-  if (!icon) icon = index.byName[normalize(r.item)] || null;
-  if (!icon) missing.push(r.item);
+const items = [];
+const noIcon = [];
+const noCategory = [];
 
-  return {
-    encounter: r.encounter,
-    item: r.item,
-    tags: r.tags,
-    price: r.price,
-    stock: r.stock,
-    ...(r.note ? { note: r.note } : {}),
-    ...(icon ? { icon: RENDER + icon + ".png" } : {}),
-  };
-});
+for (const row of rows) {
+  const icon = await syncIcon(row, manifest);
+  if (!icon) noIcon.push(row.item);
+  if (!row.category) noCategory.push(row.item);
+  items.push({
+    category: row.category,
+    item: row.item,
+    tags: row.tags,
+    price: row.price,
+    stock: row.stock,
+    ...(row.note ? { note: row.note } : {}),
+    ...(icon ? { icon: `${ICON_DIR}/${icon}` } : {}),
+  });
+}
+
+// เก็บกวาดรูปของแถวที่ถูกลบหรือเอาออกจากเว็บแล้ว
+for (const id of Object.keys(manifest)) {
+  if (!rows.some(r => r.id === id)) {
+    await unlink(path.join(ICON_DIR, manifest[id].file)).catch(() => {});
+    delete manifest[id];
+  }
+}
+const live = new Set(Object.values(manifest).map(m => m.file));
+for (const f of await readdir(ICON_DIR).catch(() => [])) {
+  if (f !== ".gitkeep" && !live.has(f)) await unlink(path.join(ICON_DIR, f)).catch(() => {});
+}
 
 // ของที่มีสต็อกขึ้นก่อน แล้วเรียงตามชื่อ
 items.sort((a, b) => (b.stock > 0) - (a.stock > 0) || a.item.localeCompare(b.item));
 
+await writeFile(MANIFEST, JSON.stringify(manifest, null, 2));
 await writeFile(
   "items.json",
   JSON.stringify({ updated: new Date().toISOString().slice(0, 10), items }, null, 2)
 );
 
-console.log(`เขียน items.json แล้ว: ${items.length} รายการ`);
-if (missing.length) {
-  console.log(`\nหาไอคอนไม่เจอ ${missing.length} รายการ — เช็คตัวสะกดใน Notion หรือใส่ chat link:`);
-  for (const name of missing) console.log(`  • ${name}`);
-}
+console.log(`\nเขียน items.json แล้ว: ${items.length} รายการ`);
+if (noCategory.length) console.log(`ยังไม่ได้เลือก Category ${noCategory.length} รายการ (จะไม่ขึ้นบนเว็บ): ${noCategory.join(", ")}`);
+if (noIcon.length) console.log(`ยังไม่มีรูป ${noIcon.length} รายการ (ขึ้นกรอบตัวอักษรแทน): ${noIcon.join(", ")}`);
