@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Yiren Masterworks — Spirit Vale</title>
+<meta name="description" content="Spirit Vale drops, minis and skins. Listed by encounter, priced in gold.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://render.guildwars2.com">
+<link href="https://fonts.googleapis.com/css2?family=Spectral:wght@200;300;400&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+Thai:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F6F8F8;
+  --card:#FFFFFF;
+  --ink:#141A1C;
+  --mute:#6E7A7C;
+  --line:#E2E8E8;
+  --spectral:#2F6F68;
+  --spectral-soft:#E8F1EF;
+  --gone:#A3ACAE;
+  --r:3px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:"IBM Plex Sans","Noto Sans Thai",system-ui,sans-serif;
+  font-size:15px;line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:860px;margin:0 auto;padding:0 24px}
+
+/* ---------- masthead ---------- */
+.masthead{padding:64px 0 40px}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--spectral)}
+.wordmark{font-family:Spectral,"Noto Sans Thai",serif;font-weight:200;font-size:clamp(38px,7vw,62px);line-height:1.05;letter-spacing:-.01em;margin:14px 0 0}
+.wordmark em{font-style:italic;font-weight:300}
+.thesis{max-width:46ch;margin-top:18px;color:var(--mute);font-size:16px}
+
+/* ---------- controls ---------- */
+.controls{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--paper) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:14px 0}
+.controls-inner{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.search{flex:1 1 220px;min-width:0;font:inherit;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:9px 12px}
+.search::placeholder{color:var(--gone)}
+.search:focus-visible,.chip:focus-visible,.btn:focus-visible,.copy:focus-visible{outline:2px solid var(--spectral);outline-offset:2px}
+.chip{font:inherit;font-size:13px;background:transparent;color:var(--mute);border:1px solid var(--line);border-radius:99px;padding:6px 13px;cursor:pointer;transition:color .15s,border-color .15s,background .15s}
+.chip:hover{color:var(--ink);border-color:var(--gone)}
+.chip[aria-pressed="true"]{background:var(--spectral);border-color:var(--spectral);color:#fff}
+.count{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--gone);margin-left:auto;white-space:nowrap}
+
+/* ---------- encounters ---------- */
+.encounter{margin-top:52px}
+.encounter-head{display:flex;align-items:baseline;gap:12px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.enc-index{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--gone)}
+.enc-name{font-family:Spectral,serif;font-weight:300;font-size:25px;letter-spacing:-.01em}
+.enc-note{font-size:13px;color:var(--gone);margin-left:auto}
+
+/* ---------- item rows ---------- */
+.item{
+  display:grid;
+  grid-template-columns:48px 1fr auto;
+  grid-template-areas:"thumb name price" "thumb meta stock";
+  column-gap:16px;row-gap:5px;align-items:center;
+  padding:16px 0 16px 16px;
+  border-bottom:1px solid var(--line);
+  position:relative;
+}
+.item::before{content:"";position:absolute;left:0;top:16px;bottom:16px;width:2px;background:var(--spectral);opacity:0;transition:opacity .18s}
+.item:hover::before{opacity:.5}
+
+.thumb{
+  grid-area:thumb;width:48px;height:48px;
+  border:1px solid var(--line);border-radius:var(--r);
+  background:var(--card);
+  display:grid;place-items:center;overflow:hidden;
+}
+.thumb img{width:100%;height:100%;object-fit:contain;display:block}
+.monogram{font-family:Spectral,serif;font-size:21px;font-weight:300;color:var(--gone)}
+
+.item-name{grid-area:name;font-family:Spectral,"Noto Sans Thai",serif;font-size:19px;font-weight:400;align-self:end}
+.price{grid-area:price;font-family:"IBM Plex Mono",monospace;font-size:16px;white-space:nowrap;align-self:end}
+.meta{grid-area:meta;display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px;color:var(--mute);align-self:start}
+.stock{grid-area:stock;font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--mute);white-space:nowrap;align-self:start;text-align:right}
+.tag{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--spectral);background:var(--spectral-soft);border-radius:var(--r);padding:2px 7px}
+.copy{font:inherit;font-size:12px;color:var(--gone);background:none;border:none;padding:0;cursor:pointer;border-bottom:1px solid transparent}
+.copy:hover{color:var(--spectral);border-bottom-color:var(--spectral)}
+
+.item.sold .item-name,.item.sold .price{color:var(--gone)}
+.item.sold .price{text-decoration:line-through}
+.item.sold .tag{color:var(--gone);background:#EFF2F2}
+.item.sold .thumb{opacity:.45}
+.item.sold::before{display:none}
+
+.empty{padding:64px 0;text-align:center;color:var(--mute)}
+.btn{font:inherit;font-size:14px;background:var(--ink);color:#fff;border:none;border-radius:var(--r);padding:9px 18px;cursor:pointer;margin-top:14px}
+
+/* ---------- ordering ---------- */
+.order{margin:72px auto 0;max-width:812px;padding:32px;background:var(--card);border:1px solid var(--line);border-radius:var(--r)}
+.order h2{font-family:Spectral,serif;font-weight:300;font-size:24px;margin-bottom:6px}
+.order p{color:var(--mute);max-width:52ch}
+.channels{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
+.channel{display:flex;flex-direction:column;gap:2px;border:1px solid var(--line);border-radius:var(--r);padding:11px 15px}
+.channel span{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--gone)}
+.channel b{font-weight:500;font-size:15px}
+
+footer{padding:40px 0 64px;color:var(--gone);font-size:13px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+@media (max-width:560px){
+  .masthead{padding:44px 0 30px}
+  .item{
+    grid-template-columns:44px 1fr;
+    grid-template-areas:"thumb name" "thumb price" "meta meta" "stock stock";
+    padding-left:14px;row-gap:4px;
+  }
+  .thumb{width:44px;height:44px}
+  .item-name{align-self:end}
+  .price{align-self:start;text-align:left}
+  .stock{text-align:left}
+  .meta{margin-top:6px}
+  .order{padding:24px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<header class="masthead wrap">
+  <p class="eyebrow">Spirit Vale · Guild Wars 2</p>
+  <h1 class="wordmark">Yiren <em>Masterworks</em></h1>
+  <p class="thesis">Drops pulled from the first wing — minis, ghostly skins and insights. Listed by encounter, priced in gold, updated as the week's clears come in.</p>
+</header>
+
+<div class="controls">
+  <div class="wrap controls-inner">
+    <input id="search" class="search" type="search" placeholder="Search items or tags" aria-label="Search items">
+    <button class="chip" type="button" id="stockOnly" aria-pressed="false">In stock only</button>
+    <p class="count" id="count"></p>
+  </div>
+</div>
+
+<main class="wrap" id="catalog"></main>
+
+<section class="order">
+  <h2>Buying</h2>
+  <p>Whisper in game with the item name, or drop a message on Discord. Trades are handed over in Lion's Arch; gold up front for anything above 2,000g.</p>
+  <div class="channels">
+    <div class="channel"><span>In game</span><b>Yiren.4820</b></div>
+    <div class="channel"><span>Discord</span><b>yiren.masterworks</b></div>
+    <div class="channel"><span>Restock</span><b>Weekly, after reset</b></div>
+  </div>
+</section>
+
+<footer class="wrap">
+  <p>Yiren Masterworks — a player-run shop. Not affiliated with ArenaNet.</p>
+  <p id="updated"></p>
+</footer>
+
+<script>
+/* ------------------------------------------------------------------
+   ตัวอย่างข้อมูล — ของจริงจะถูกทับด้วย items.json ที่ sync มาจาก Notion
+   { encounter, item, tags[], price, stock, note, icon }
+   icon = URL จาก render.guildwars2.com ที่สคริปต์ sync หามาให้จากชื่อไอเทม
+   ถ้า icon ว่าง หน้าเว็บจะขึ้นกรอบตัวอักษรแทน ไม่มีรูปแตก
+   *** icon 3 ตัวล่างเป็นไอคอนจริงจาก API แต่ไม่ใช่ของไอเทมนั้น ***
+   *** ใส่ไว้โชว์ว่าระบบโหลดรูปได้เฉย ๆ                        ***
+------------------------------------------------------------------ */
+const SAMPLE = {
+  updated: "2026-08-18",
+  items: [
+    { encounter:"Vale Guardian", item:"Mini Vale Guardian", tags:["mini"], price:"1,450g", stock:2,
+      icon:"https://render.guildwars2.com/file/C6110F52DF5AFE0F00A56F9E143E9732176DDDE9/65015.png" },
+    { encounter:"Vale Guardian", item:"Ghostly Infusion", tags:["infusion","cosmetic"], price:"3,900g", stock:1, note:"Green tint",
+      icon:"https://render.guildwars2.com/file/027D1D382447933D074BE45F405EA1F379471DEB/63127.png" },
+    { encounter:"Vale Guardian", item:"Legendary Insight ×10", tags:["bundle","currency"], price:"620g", stock:6,
+      icon:"https://render.guildwars2.com/file/943538394A94A491C8632FBEF6203C2013443555/102478.png" },
+    { encounter:"Spirit Woods", item:"Chest run — escort + gliding", tags:["service"], price:"90g", stock:99, note:"Per character" },
+    { encounter:"Gorseval the Multifarious", item:"Mini Gorseval", tags:["mini"], price:"1,100g", stock:0 },
+    { encounter:"Gorseval the Multifarious", item:"White Mantle Abomination Hammer", tags:["skin","weapon"], price:"2,750g", stock:1 },
+    { encounter:"Gorseval the Multifarious", item:"Ascended chest box", tags:["gear"], price:"340g", stock:4 },
+    { encounter:"Sabetha the Saboteur", item:"Mini Sabetha", tags:["mini"], price:"1,600g", stock:1 },
+    { encounter:"Sabetha the Saboteur", item:"White Mantle Cannon", tags:["skin","weapon"], price:"2,900g", stock:0 },
+    { encounter:"Sabetha the Saboteur", item:"Full wing clear — 4 LI", tags:["service"], price:"480g", stock:99, note:"Sat & Sun" }
+  ]
+};
+
+const ORDER = ["Vale Guardian","Spirit Woods","Gorseval the Multifarious","Sabetha the Saboteur"];
+
+let DATA = SAMPLE, stockOnly = false, query = "";
+const catalog = document.getElementById("catalog");
+const countEl = document.getElementById("count");
+
+function thumb(it){
+  const box = document.createElement("div");
+  box.className = "thumb";
+  const letter = `<span class="monogram">${it.item.trim()[0] || "?"}</span>`;
+  if (!it.icon){ box.innerHTML = letter; return box; }
+  const img = document.createElement("img");
+  img.src = it.icon;
+  img.alt = "";
+  img.loading = "lazy";
+  img.addEventListener("error", () => { box.innerHTML = letter; });
+  box.appendChild(img);
+  return box;
+}
+
+function render(){
+  const q = query.trim().toLowerCase();
+  let shown = 0;
+  catalog.innerHTML = "";
+
+  ORDER.forEach((enc, i) => {
+    const items = DATA.items.filter(it =>
+      it.encounter === enc &&
+      (!stockOnly || it.stock > 0) &&
+      (!q || (it.item + " " + (it.tags||[]).join(" ")).toLowerCase().includes(q))
+    );
+    if (!items.length) return;
+    shown += items.length;
+
+    const sec = document.createElement("section");
+    sec.className = "encounter";
+    const inStock = items.filter(it => it.stock > 0).length;
+    sec.innerHTML = `
+      <div class="encounter-head">
+        <p class="enc-index">Encounter ${i + 1}</p>
+        <h2 class="enc-name">${enc}</h2>
+        <p class="enc-note">${inStock} available</p>
+      </div>`;
+
+    items.forEach(it => {
+      const sold = it.stock === 0;
+      const row = document.createElement("article");
+      row.className = "item" + (sold ? " sold" : "");
+      row.innerHTML = `
+        <h3 class="item-name">${it.item}</h3>
+        <p class="price">${it.price}</p>
+        <div class="meta">
+          ${(it.tags||[]).map(t => `<span class="tag">${t}</span>`).join("")}
+          ${it.note ? `<span>${it.note}</span>` : ""}
+          <button class="copy" type="button">Copy name</button>
+        </div>
+        <p class="stock">${sold ? "Sold out" : it.stock >= 99 ? "On request" : it.stock + " in stock"}</p>`;
+      row.prepend(thumb(it));
+      row.querySelector(".copy").addEventListener("click", e => {
+        navigator.clipboard.writeText(it.item).then(() => {
+          e.target.textContent = "Copied";
+          setTimeout(() => (e.target.textContent = "Copy name"), 1400);
+        });
+      });
+      sec.appendChild(row);
+    });
+    catalog.appendChild(sec);
+  });
+
+  if (!shown){
+    catalog.innerHTML = `<div class="empty">
+      <p>Nothing matches that. Clear the filters to see the full list.</p>
+      <button class="btn" type="button" id="reset">Clear filters</button></div>`;
+    document.getElementById("reset").addEventListener("click", () => {
+      query = ""; stockOnly = false;
+      document.getElementById("search").value = "";
+      document.getElementById("stockOnly").setAttribute("aria-pressed","false");
+      render();
+    });
+  }
+
+  countEl.textContent = shown + " / " + DATA.items.length + " listings";
+  document.getElementById("updated").textContent = "Updated " + DATA.updated;
+}
+
+document.getElementById("search").addEventListener("input", e => { query = e.target.value; render(); });
+document.getElementById("stockOnly").addEventListener("click", e => {
+  stockOnly = !stockOnly;
+  e.target.setAttribute("aria-pressed", String(stockOnly));
+  render();
+});
+
+fetch("items.json", { cache: "no-store" })
+  .then(r => r.ok ? r.json() : Promise.reject())
+  .then(d => { if (d && Array.isArray(d.items) && d.items.length) DATA = d; })
+  .catch(() => {})
+  .finally(render);
+</script>
+</body>
+</html>
