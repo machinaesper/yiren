@@ -1,1 +1,13 @@
-{"updated":"—","items":[]}
+{
+  "updated": "2026-08-17",
+  "items": [
+    {
+      "category": "Equipment",
+      "item": "Insect Carapace",
+      "tags": [],
+      "price": "—",
+      "stock": 0,
+      "icon": "icons/3bfcc428b051806e9b2ce882f5997c5d.png"
+    }
+  ]
+}
