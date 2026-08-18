@@ -13,6 +13,19 @@
       "discord": "norn11",
       "note": "VIT+3\nMDEF+4",
       "icon": "icons/3bfcc428b051806e9b2ce882f5997c5d.png"
+    },
+    {
+      "category": "Cards",
+      "item": "Suphara Card",
+      "tags": [
+        "card"
+      ],
+      "price": "—",
+      "stock": 2,
+      "seller": "Anya",
+      "discord": "machina.espr",
+      "note": "HolyDamage: +6%\nShadowDamage: +6%\nPoisonDamage: +6%\nUndeadDamage: +6%",
+      "icon": "icons/3c0cc428b051802c82bec13572ffab66.jpeg"
     }
   ]
 }
