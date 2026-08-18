@@ -128,7 +128,7 @@ body::before{
 /* ---------- แถวไอเทม ---------- */
 .item{
   display:grid;grid-template-columns:56px 1fr auto;
-  grid-template-areas:"thumb name price" "thumb meta stock";
+  grid-template-areas:"thumb name price" "thumb meta stock" "thumb note note";
   column-gap:18px;row-gap:6px;align-items:center;
   padding:16px 20px;margin-bottom:10px;border-radius:18px;
   background:var(--glass);backdrop-filter:blur(6px);
@@ -165,6 +165,12 @@ body::before{
   white-space:nowrap;align-self:end;
   background:var(--sweep);-webkit-background-clip:text;background-clip:text;color:transparent;
 }
+.note{
+  grid-area:note;white-space:pre-line;margin-top:9px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;line-height:1.65;
+  color:var(--mute);border-left:1px solid var(--edge);padding-left:11px;
+}
+.item.sold .note{color:var(--dim)}
 .meta{grid-area:meta;display:flex;flex-wrap:wrap;gap:9px;align-items:center;font-size:13px;color:var(--mute);align-self:start}
 .stock{
   grid-area:stock;font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.09em;
@@ -240,7 +246,7 @@ footer{
   .masthead{padding:52px 0 28px}
   .item{
     grid-template-columns:48px 1fr;
-    grid-template-areas:"thumb name" "thumb price" "meta meta" "stock stock";
+    grid-template-areas:"thumb name" "thumb price" "meta meta" "note note" "stock stock";
     padding:16px;row-gap:5px;
   }
   .thumb{width:48px;height:48px;border-radius:12px}
@@ -293,7 +299,7 @@ footer{
 const SAMPLE = {
   updated: "2026-08-18",
   items: [
-    { category:"Equipment", item:"+7 Knight Shield", tags:["armor","knight"], price:"1,450,000g", stock:1, note:"Clean substats", seller:"Yiren", discord:"norn" },
+    { category:"Equipment", item:"+7 Knight Shield", tags:["armor","knight"], price:"1450000", stock:1, note:"VIT+3\nMDEF+4\nMATK+2%", seller:"Yiren", discord:"norn" },
     { category:"Equipment", item:"Job 50 Berserker Axe", tags:["weapon","berserker"], price:"820,000g", stock:2, seller:"Yiren", discord:"norn" },
     { category:"Equipment", item:"+4 Scout Boots", tags:["armor","scout"], price:"210,000g", stock:0, seller:"Kessa", discord:"kessa.sv" },
     { category:"Cards", item:"World Boss Card — assorted", tags:["card","boss drop"], price:"3,900,000g", stock:1, seller:"Kessa", discord:"kessa.sv" },
@@ -307,8 +313,21 @@ const SAMPLE = {
   ]
 };
 
-/* ลำดับหมวดบนหน้าเว็บ — ต้องสะกดตรงกับตัวเลือกใน Notion คอลัมน์ Category */
-const ORDER = ["Equipment","Cards","Artifacts","Grimoires","Consumables","Materials","Cosmetics"];
+/* ลำดับหมวดที่อยากให้ขึ้นก่อน — หมวดอื่นที่เพิ่มใน Notion จะต่อท้ายให้เอง ไม่ตกหล่น */
+const ORDER = ["Equipment","Cards","Gems","Artifacts","Grimoires","Consumables","Materials","Cosmetics"];
+
+function categories(){
+  const found = [...new Set(DATA.items.map(it => it.category).filter(Boolean))];
+  const known = ORDER.filter(c => found.includes(c));
+  const extra = found.filter(c => !ORDER.includes(c)).sort();
+  return [...known, ...extra];
+}
+
+/* 3500000 -> 3,500,000 ; ถ้าพิมพ์รูปแบบอื่นมาก็ปล่อยไว้ตามนั้น */
+function money(v){
+  const raw = String(v ?? "").trim();
+  return /^\d+$/.test(raw) ? Number(raw).toLocaleString("en-US") : (raw || "—");
+}
 
 let DATA = SAMPLE, stockOnly = false, query = "", seller = "";
 const catalog = document.getElementById("catalog");
@@ -357,7 +376,7 @@ function render(){
   let shown = 0;
   catalog.innerHTML = "";
 
-  ORDER.forEach(cat => {
+  categories().forEach(cat => {
     const items = DATA.items.filter(it =>
       it.category === cat &&
       (!seller || it.seller === seller) &&
@@ -377,19 +396,19 @@ function render(){
       </div>`;
 
     items.forEach(it => {
-      const sold = it.stock === 0;
+      const sold = it.stock === 0;   // เว้นว่างใน Notion = ไม่ระบุ ไม่ใช่ของหมด
       const row = document.createElement("article");
       row.className = "item" + (sold ? " sold" : "");
       row.innerHTML = `
         <h3 class="item-name">${it.item}</h3>
-        <p class="price">${it.price}</p>
+        <p class="price">${money(it.price)}</p>
         <div class="meta">
           ${(it.tags||[]).map(t => `<span class="tag">${t}</span>`).join("")}
-          ${it.note ? `<span>${it.note}</span>` : ""}
           <button class="copy" type="button">Copy name</button>
           ${it.seller ? `<button class="seller" type="button" ${it.discord ? `title="Copy ${it.discord}"` : "disabled"}>Sold by ${it.seller}</button>` : ""}
         </div>
-        <p class="stock">${sold ? "Sold out" : it.stock >= 99 ? "On request" : it.stock + " in stock"}</p>`;
+        <p class="stock">${sold ? "Sold out" : it.stock == null ? "Available" : it.stock >= 99 ? "On request" : it.stock + " in stock"}</p>
+        ${it.note ? `<p class="note">${it.note}</p>` : ""}`;
       row.prepend(thumb(it));
       const sellerBtn = row.querySelector(".seller");
       if (sellerBtn && it.discord) sellerBtn.addEventListener("click", e => {
