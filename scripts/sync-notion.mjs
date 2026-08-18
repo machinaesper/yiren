@@ -48,7 +48,15 @@ async function fetchRows() {
   return rows;
 }
 
-const text = p => (p?.title || p?.rich_text || []).map(t => t.plain_text).join("").trim();
+/* อ่านค่าออกมาเป็นข้อความ ไม่ว่าคอลัมน์จะถูกตั้งเป็นชนิดไหนก็ตาม */
+const text = p => {
+  if (!p) return "";
+  if (typeof p.number === "number") return String(p.number);
+  if (p.select?.name) return p.select.name;
+  if (p.formula) return String(p.formula.string ?? p.formula.number ?? "").trim();
+  if (p.rollup?.number != null) return String(p.rollup.number);
+  return (p.title || p.rich_text || []).map(t => t.plain_text).join("").trim();
+};
 
 function firstFile(prop) {
   const f = (prop?.files || [])[0];
