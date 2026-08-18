@@ -1,179 +1,468 @@
-/**
- * sync-notion.mjs
- * อ่าน database ของ Notion -> เขียน items.json + ดึงรูปไอเทมมาเก็บไว้ใน icons/
- *
- * ทำไมต้องโหลดรูปมาเก็บเอง: ลิงก์ไฟล์ที่ Notion คืนมาเป็น URL แบบมีลายเซ็น หมดอายุราว 1 ชั่วโมง
- * ถ้าเอาไปแปะบนเว็บตรง ๆ พรุ่งนี้รูปแตกหมด จึงต้อง mirror ลง repo ให้เป็นของเราเอง
- *
- * ต้องมี env:
- *   NOTION_TOKEN        โทเคนของ internal integration
- *   NOTION_DATABASE_ID  id ของ database (32 ตัวอักษรใน URL)
- */
-import { readFile, writeFile, mkdir, readdir, unlink, access } from "node:fs/promises";
-import path from "node:path";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Yiren Masterworks — SpiritVale items catalog by Yiren</title>
+<meta name="description" content="Gear, cards, artifacts and grimoires from across Nevaris. Priced in game currency only, restocked as we farm.">
+<meta name="theme-color" content="#0A0912">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Outfit:wght@300;400;500&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+Thai:wght@300;400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --base:#0A0912;
+  --ink:#F4F1FA;
+  --mute:#A69FBF;
+  --dim:#6E668C;
+  --glass:rgba(255,255,255,.035);
+  --glass-2:rgba(255,255,255,.06);
+  --edge:rgba(255,255,255,.10);
 
-const TOKEN = process.env.NOTION_TOKEN;
-const DB = (process.env.NOTION_DATABASE_ID || "").replace(/-/g, "");
-if (!TOKEN || !DB) {
-  console.error("ขาด NOTION_TOKEN หรือ NOTION_DATABASE_ID");
-  process.exit(1);
+  --peach:#FFB39C;
+  --gold:#FFD98E;
+  --mint:#7EE8C6;
+  --peri:#8FA8FF;
+
+  --sweep:linear-gradient(104deg,var(--peach),var(--gold) 32%,var(--mint) 64%,var(--peri));
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--base);
+  color:var(--ink);
+  font-family:Outfit,"Noto Sans Thai",system-ui,sans-serif;
+  font-size:15px;font-weight:300;line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  position:relative;
+}
+/* ม่านเกรเดียนต์แบบ mesh ลอยอยู่หลังทุกอย่าง */
+body::before{
+  content:"";position:fixed;inset:-20%;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(46% 38% at 14% 6%,  rgba(255,179,156,.30), transparent 62%),
+    radial-gradient(42% 34% at 84% 12%, rgba(143,168,255,.28), transparent 64%),
+    radial-gradient(48% 40% at 68% 62%, rgba(126,232,198,.18), transparent 66%),
+    radial-gradient(38% 32% at 22% 88%, rgba(255,217,142,.16), transparent 64%);
+  filter:blur(30px);
+}
+.wrap{max-width:900px;margin:0 auto;padding:0 22px}
+
+/* ---------- หัวเว็บ ---------- */
+.masthead{padding:76px 0 40px}
+.eyebrow{
+  font-family:"JetBrains Mono",monospace;font-size:11px;
+  letter-spacing:.24em;text-transform:uppercase;color:var(--mute);
+  display:flex;align-items:center;gap:10px;
+}
+.eyebrow::before{
+  content:"";width:26px;height:2px;border-radius:2px;background:var(--sweep);
+}
+.wordmark{
+  font-family:"Bricolage Grotesque",sans-serif;font-weight:700;
+  font-size:clamp(44px,9.5vw,86px);line-height:.94;letter-spacing:-.035em;
+  margin:18px 0 0;
+  background:var(--sweep);background-size:220% 100%;
+  -webkit-background-clip:text;background-clip:text;
+  color:transparent;
+  animation:drift 14s ease-in-out infinite alternate;
+}
+@keyframes drift{from{background-position:0% 50%} to{background-position:100% 50%}}
+.wordmark em{font-style:italic;font-weight:600}
+.thesis{
+  max-width:50ch;margin-top:20px;color:var(--mute);font-size:16.5px;
+  padding-left:16px;position:relative;
+}
+.thesis::before{
+  content:"";position:absolute;left:0;top:.35em;bottom:.35em;width:2px;
+  border-radius:2px;background:var(--sweep);opacity:.7;
 }
 
-const ICON_DIR = "icons";
-const MANIFEST = "data/icon-manifest.json";
-const MAX_ICON_BYTES = 3 * 1024 * 1024;
-
-const exists = p => access(p).then(() => true, () => false);
-
-/* ---------- Notion ---------- */
-
-async function fetchRows() {
-  const rows = [];
-  let cursor;
-  do {
-    const res = await fetch(`https://api.notion.com/v1/databases/${DB}/query`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${TOKEN}`,
-        "Notion-Version": "2022-06-28",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ page_size: 100, start_cursor: cursor }),
-    });
-    if (!res.ok) throw new Error(`Notion ${res.status}: ${await res.text()}`);
-    const data = await res.json();
-    rows.push(...data.results);
-    cursor = data.has_more ? data.next_cursor : undefined;
-  } while (cursor);
-  return rows;
+/* ---------- แถบควบคุม ---------- */
+.controls{
+  position:sticky;top:0;z-index:30;margin-top:34px;
+  background:rgba(10,9,18,.72);backdrop-filter:blur(16px) saturate(140%);
+  padding:14px 0;
+}
+.controls::after{
+  content:"";position:absolute;left:0;right:0;bottom:0;height:1px;
+  background:var(--sweep);opacity:.45;
+}
+.controls-inner{display:flex;flex-wrap:wrap;gap:9px;align-items:center}
+.search,.select,.chip{
+  font:inherit;font-size:13.5px;border-radius:999px;
+  background:var(--glass);border:1px solid var(--edge);color:var(--ink);
+  padding:9px 16px;transition:.18s;
+}
+.search{flex:1 1 210px;min-width:0}
+.search::placeholder{color:var(--dim)}
+.select,.chip{color:var(--mute);cursor:pointer}
+.select:hover,.chip:hover{background:var(--glass-2);color:var(--ink)}
+.select.on,.chip[aria-pressed="true"]{
+  color:#141126;border-color:transparent;background:var(--sweep);font-weight:500;
+}
+.search:focus-visible,.select:focus-visible,.chip:focus-visible,.btn:focus-visible,
+.copy:focus-visible,.seller:focus-visible{outline:2px solid var(--peri);outline-offset:2px}
+.count{
+  font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.1em;
+  color:var(--dim);margin-left:auto;white-space:nowrap;text-transform:uppercase;
 }
 
-const text = p => (p?.title || p?.rich_text || []).map(t => t.plain_text).join("").trim();
-
-function firstFile(prop) {
-  const f = (prop?.files || [])[0];
-  if (!f) return null;
-  return { url: f.file?.url || f.external?.url || null, name: f.name || "" };
+/* ---------- หมวด ---------- */
+.group{margin-top:50px}
+.group-head{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.group-name{
+  font-family:"Bricolage Grotesque",sans-serif;font-weight:600;
+  font-size:24px;letter-spacing:-.02em;
+  background:var(--sweep);-webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.group-head::after{
+  content:"";flex:1;height:1px;
+  background:linear-gradient(90deg,var(--edge),transparent);
+}
+.group-note{
+  font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.1em;
+  color:var(--dim);text-transform:uppercase;order:3;
 }
 
-function toRow(page) {
-  const p = page.properties;
-  return {
-    id: page.id.replace(/-/g, ""),
-    edited: page.last_edited_time,
-    item: text(p["Item"]),
-    category: p["Category"]?.select?.name || "",
-    price: text(p["Price"]) || "—",
-    stock: typeof p["Stock"]?.number === "number" ? p["Stock"].number : 0,
-    tags: (p["Tags"]?.multi_select || []).map(t => t.name),
-    note: text(p["Note"]),
-    seller: p["Seller"]?.select?.name || text(p["Seller"]),
-    discord: text(p["Discord"]),
-    file: firstFile(p["Icon"]),
-    listed: p["Listed"]?.checkbox !== false, // ไม่มีคอลัมน์นี้ = ถือว่าขึ้นเว็บ
-  };
+/* ---------- แถวไอเทม ---------- */
+.item{
+  display:grid;grid-template-columns:56px 1fr auto;
+  grid-template-areas:"thumb name price" "thumb meta stock" "thumb note note";
+  column-gap:18px;row-gap:6px;align-items:center;
+  padding:16px 20px;margin-bottom:10px;border-radius:18px;
+  background:var(--glass);backdrop-filter:blur(6px);
+  position:relative;transition:background .2s,transform .2s;
+}
+/* ขอบเกรเดียนต์ 1px ด้วยเทคนิค mask */
+.item::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;
+  background:var(--sweep);opacity:.22;transition:opacity .2s;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  mask-composite:exclude;pointer-events:none;
+}
+.item:hover{background:var(--glass-2);transform:translateY(-1px)}
+.item:hover::before{opacity:.85}
+
+.thumb{
+  grid-area:thumb;width:56px;height:56px;border-radius:14px;
+  background:rgba(255,255,255,.05);border:1px solid var(--edge);
+  display:grid;place-items:center;overflow:hidden;
+}
+.thumb img{width:100%;height:100%;object-fit:contain;display:block}
+.monogram{
+  font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:24px;
+  background:var(--sweep);-webkit-background-clip:text;background-clip:text;color:transparent;opacity:.75;
 }
 
-/* ---------- รูป ---------- */
+.item-name{
+  grid-area:name;font-family:"Bricolage Grotesque",sans-serif;font-weight:600;
+  font-size:19px;letter-spacing:-.015em;align-self:end;
+}
+.price{
+  grid-area:price;font-family:"JetBrains Mono",monospace;font-weight:500;font-size:16px;
+  white-space:nowrap;align-self:end;
+  background:var(--sweep);-webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.note{
+  grid-area:note;white-space:pre-line;margin-top:9px;
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;line-height:1.65;
+  color:var(--mute);border-left:1px solid var(--edge);padding-left:11px;
+}
+.item.sold .note{color:var(--dim)}
+.meta{grid-area:meta;display:flex;flex-wrap:wrap;gap:9px;align-items:center;font-size:13px;color:var(--mute);align-self:start}
+.stock{
+  grid-area:stock;font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--dim);white-space:nowrap;align-self:start;text-align:right;
+}
+.tag{
+  font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--mute);background:var(--glass-2);border:1px solid var(--edge);
+  border-radius:999px;padding:3px 10px;
+}
+.copy,.seller{
+  font:inherit;font-size:12.5px;color:var(--dim);
+  background:none;border:none;padding:0;cursor:pointer;
+  border-bottom:1px solid transparent;transition:.16s;
+}
+.copy:hover{color:var(--mint);border-bottom-color:var(--mint)}
+.seller:hover{color:var(--peach);border-bottom-color:var(--peach)}
+.seller[disabled]{cursor:default;color:var(--dim)}
+.seller[disabled]:hover{border-bottom-color:transparent}
 
-function extFor(file, contentType) {
-  const fromName = path.extname(file.name || "").toLowerCase();
-  if ([".png", ".jpg", ".jpeg", ".webp", ".gif", ".avif"].includes(fromName)) return fromName;
-  const map = { "image/png": ".png", "image/jpeg": ".jpg", "image/webp": ".webp", "image/gif": ".gif", "image/avif": ".avif" };
-  return map[(contentType || "").split(";")[0].trim()] || ".png";
+.item.sold{background:transparent}
+.item.sold::before{opacity:.07}
+.item.sold:hover{background:transparent;transform:none}
+.item.sold:hover::before{opacity:.14}
+.item.sold .item-name{color:var(--dim)}
+.item.sold .price{background:none;color:var(--dim);text-decoration:line-through}
+.item.sold .thumb{opacity:.35;filter:grayscale(.8)}
+.item.sold .monogram{opacity:.4}
+
+.empty{padding:70px 0;text-align:center;color:var(--mute)}
+.btn{
+  font:inherit;font-size:14px;font-weight:500;color:#141126;
+  background:var(--sweep);border:none;border-radius:999px;
+  padding:11px 24px;cursor:pointer;margin-top:18px;
+}
+.btn:hover{filter:brightness(1.08)}
+
+/* ---------- กล่องติดต่อ ---------- */
+.order{
+  margin:72px auto 0;max-width:900px;padding:32px;border-radius:24px;
+  background:var(--glass);backdrop-filter:blur(6px);position:relative;
+}
+.order::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;
+  background:var(--sweep);opacity:.35;pointer-events:none;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  mask-composite:exclude;
+}
+.order h2{
+  font-family:"Bricolage Grotesque",sans-serif;font-weight:600;font-size:26px;
+  letter-spacing:-.02em;margin-bottom:8px;
+  background:var(--sweep);-webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.order p{color:var(--mute);max-width:60ch}
+.channels{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+.channel{
+  display:flex;flex-direction:column;gap:2px;border-radius:14px;
+  background:var(--glass-2);border:1px solid var(--edge);padding:12px 18px;
+}
+.channel span{
+  font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--dim);
+}
+.channel b{font-weight:500;font-size:15px;color:var(--ink)}
+
+footer{
+  padding:40px 0 64px;color:var(--dim);font-size:12.5px;
+  display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
 }
 
-async function syncIcon(row, manifest) {
-  if (!row.file?.url) return null;
-
-  const known = manifest[row.id];
-  // แก้อย่างอื่นในแถวก็ทำให้ last_edited_time ขยับ แต่โหลดรูปซ้ำไม่กี่ KB ถือว่าคุ้มกว่าเสี่ยงรูปไม่อัปเดต
-  if (known && known.edited === row.edited && await exists(path.join(ICON_DIR, known.file))) {
-    return known.file;
+@media (max-width:560px){
+  .masthead{padding:52px 0 28px}
+  .item{
+    grid-template-columns:48px 1fr;
+    grid-template-areas:"thumb name" "thumb price" "meta meta" "note note" "stock stock";
+    padding:16px;row-gap:5px;
   }
+  .thumb{width:48px;height:48px;border-radius:12px}
+  .price{align-self:start;text-align:left}
+  .stock{text-align:left}
+  .meta{margin-top:9px}
+  .order{padding:24px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important}
+}
+</style>
+</head>
+<body>
 
-  const res = await fetch(row.file.url);
-  if (!res.ok) {
-    console.warn(`  โหลดรูปไม่สำเร็จ (${res.status}) — ${row.item}`);
-    return known?.file ?? null;
-  }
-  const buf = Buffer.from(await res.arrayBuffer());
-  if (buf.length > MAX_ICON_BYTES) {
-    console.warn(`  รูปใหญ่เกิน ${(buf.length / 1e6).toFixed(1)}MB ข้ามไว้ก่อน — ${row.item}`);
-    return known?.file ?? null;
-  }
+<header class="masthead wrap">
+  <p class="eyebrow">SpiritVale · Nevaris</p>
+  <h1 class="wordmark">Yiren <em>Masterworks</em></h1>
+  <p class="thesis">Gear, cards, artifacts and grimoires pulled from across Nevaris. Priced in game currency only, restocked as we farm.</p>
+</header>
 
-  const name = row.id + extFor(row.file, res.headers.get("content-type"));
-  // ถ้านามสกุลเปลี่ยน ลบไฟล์เดิมทิ้งกันขยะค้าง
-  if (known?.file && known.file !== name) await unlink(path.join(ICON_DIR, known.file)).catch(() => {});
-  await writeFile(path.join(ICON_DIR, name), buf);
-  manifest[row.id] = { file: name, edited: row.edited };
-  console.log(`  อัปเดตรูป — ${row.item}`);
-  return name;
+<div class="controls">
+  <div class="wrap controls-inner">
+    <input id="search" class="search" type="search" placeholder="Search items or tags" aria-label="Search items">
+    <select class="select" id="sellerFilter" aria-label="Filter by seller"><option value="">All sellers</option></select>
+    <button class="chip" type="button" id="stockOnly" aria-pressed="false">In stock only</button>
+    <p class="count" id="count"></p>
+  </div>
+</div>
+
+<main class="wrap" id="catalog"></main>
+
+<section class="order">
+  <h2>Buying</h2>
+  <p>Whisper the seller in game with the item name, or message them on Discord — every listing shows who is holding it. Only handover through trade.</p>
+  <div class="channels" id="roster"></div>
+</section>
+
+<footer class="wrap">
+  <p>Yiren Masterworks — a player-run shop. Not affiliated with Baikun Interactive.</p>
+  <p id="updated"></p>
+</footer>
+
+<script>
+/* ------------------------------------------------------------------
+   ตัวอย่างข้อมูล — ของจริงจะถูกทับด้วย items.json ที่ sync มาจาก Notion
+   { category, item, tags[], price, stock, note, icon, seller, discord }
+   ชื่อไอเทมข้างล่างเป็นของสมมติไว้ดูเลย์เอาต์เฉย ๆ เปลี่ยนเป็นของจริงใน Notion ได้เลย
+------------------------------------------------------------------ */
+const SAMPLE = {
+  updated: "2026-08-18",
+  items: [
+    { category:"Equipment", item:"+7 Knight Shield", tags:["armor","knight"], price:"1450000", stock:1, note:"VIT+3\nMDEF+4\nMATK+2%", seller:"Yiren", discord:"norn" },
+    { category:"Equipment", item:"Job 50 Berserker Axe", tags:["weapon","berserker"], price:"820,000g", stock:2, seller:"Yiren", discord:"norn" },
+    { category:"Equipment", item:"+4 Scout Boots", tags:["armor","scout"], price:"210,000g", stock:0, seller:"Kessa", discord:"kessa.sv" },
+    { category:"Cards", item:"World Boss Card — assorted", tags:["card","boss drop"], price:"3,900,000g", stock:1, seller:"Kessa", discord:"kessa.sv" },
+    { category:"Cards", item:"Common mob card bundle ×10", tags:["card","bundle"], price:"95,000g", stock:6, seller:"Yiren", discord:"norn" },
+    { category:"Artifacts", item:"Artifact set piece — 2pc", tags:["artifact"], price:"1,100,000g", stock:1, seller:"Milo", discord:"milo_sv" },
+    { category:"Grimoires", item:"Wizard grimoire", tags:["grimoire","wizard"], price:"640,000g", stock:0, seller:"Milo", discord:"milo_sv" },
+    { category:"Consumables", item:"Boss Lure ×5", tags:["consumable"], price:"180,000g", stock:99, note:"Crafted to order", seller:"Yiren", discord:"norn" },
+    { category:"Materials", item:"Vulcanite Crystal ×10", tags:["refining"], price:"340,000g", stock:4, seller:"Kessa", discord:"kessa.sv" },
+    { category:"Materials", item:"Essence of Flow ×20", tags:["essence"], price:"260,000g", stock:3, seller:"Yiren", discord:"norn" },
+    { category:"Cosmetics", item:"Weapon skin", tags:["cosmetic"], price:"500,000g", stock:1, seller:"Milo", discord:"milo_sv" }
+  ]
+};
+
+/* ลำดับหมวดที่อยากให้ขึ้นก่อน — หมวดอื่นที่เพิ่มใน Notion จะต่อท้ายให้เอง ไม่ตกหล่น */
+const ORDER = ["Equipment","Cards","Gems","Artifacts","Grimoires","Consumables","Materials","Cosmetics"];
+
+function categories(){
+  const found = [...new Set(DATA.items.map(it => it.category).filter(Boolean))];
+  const known = ORDER.filter(c => found.includes(c));
+  const extra = found.filter(c => !ORDER.includes(c)).sort();
+  return [...known, ...extra];
 }
 
-/* ---------- ประกอบไฟล์ ---------- */
-
-await mkdir(ICON_DIR, { recursive: true });
-await mkdir("data", { recursive: true });
-
-const manifest = await readFile(MANIFEST, "utf8").then(JSON.parse).catch(() => ({}));
-const rows = (await fetchRows()).map(toRow).filter(r => r.listed && r.item);
-
-/* Discord พิมพ์ครั้งเดียวต่อคนพอ แถวอื่นของคนเดียวกันเติมให้เอง */
-const discordBySeller = new Map();
-for (const r of rows) {
-  if (r.seller && r.discord && !discordBySeller.has(r.seller)) discordBySeller.set(r.seller, r.discord);
+/* 3500000 -> 3,500,000 ; ถ้าพิมพ์รูปแบบอื่นมาก็ปล่อยไว้ตามนั้น */
+function money(v){
+  const raw = String(v ?? "").trim();
+  return /^\d+$/.test(raw) ? Number(raw).toLocaleString("en-US") : (raw || "—");
 }
 
-const items = [];
-const noIcon = [];
-const noCategory = [];
-const noDiscord = new Set();
+let DATA = SAMPLE, stockOnly = false, query = "", seller = "";
+const catalog = document.getElementById("catalog");
+const countEl = document.getElementById("count");
 
-for (const row of rows) {
-  const icon = await syncIcon(row, manifest);
-  if (!icon) noIcon.push(row.item);
-  if (!row.category) noCategory.push(row.item);
+function thumb(it){
+  const box = document.createElement("div");
+  box.className = "thumb";
+  const letter = `<span class="monogram">${it.item.trim()[0] || "?"}</span>`;
+  if (!it.icon){ box.innerHTML = letter; return box; }
+  const img = document.createElement("img");
+  img.src = it.icon; img.alt = ""; img.loading = "lazy";
+  img.addEventListener("error", () => { box.innerHTML = letter; });
+  box.appendChild(img);
+  return box;
+}
 
-  const discord = row.discord || discordBySeller.get(row.seller) || "";
-  if (row.seller && !discord) noDiscord.add(row.seller);
-
-  items.push({
-    category: row.category,
-    item: row.item,
-    tags: row.tags,
-    price: row.price,
-    stock: row.stock,
-    ...(row.seller ? { seller: row.seller } : {}),
-    ...(discord ? { discord } : {}),
-    ...(row.note ? { note: row.note } : {}),
-    ...(icon ? { icon: `${ICON_DIR}/${icon}` } : {}),
+/* รวบรวมคนขายจากข้อมูล เก็บ Discord ตัวแรกที่เจอของแต่ละคน */
+function sellers(){
+  const map = new Map();
+  DATA.items.forEach(it => {
+    if (!it.seller) return;
+    if (!map.has(it.seller) || (!map.get(it.seller) && it.discord)) map.set(it.seller, it.discord || "");
   });
+  return [...map].sort((a, b) => a[0].localeCompare(b[0]));
 }
 
-// เก็บกวาดรูปของแถวที่ถูกลบหรือเอาออกจากเว็บแล้ว
-for (const id of Object.keys(manifest)) {
-  if (!rows.some(r => r.id === id)) {
-    await unlink(path.join(ICON_DIR, manifest[id].file)).catch(() => {});
-    delete manifest[id];
+function buildSellerUI(){
+  const list = sellers();
+
+  const sel = document.getElementById("sellerFilter");
+  sel.innerHTML = '<option value="">All sellers</option>' +
+    list.map(([name]) => `<option value="${name}">${name}</option>`).join("");
+  sel.value = seller;
+  sel.hidden = list.length < 2;   // มีคนขายคนเดียวก็ไม่ต้องมีตัวกรอง
+
+  const roster = document.getElementById("roster");
+  roster.innerHTML = list.length
+    ? list.map(([name, dc]) =>
+        `<div class="channel"><span>${name}</span><b>${dc || "ask in game"}</b></div>`).join("")
+    : '<div class="channel"><span>Contact</span><b>See each listing</b></div>';
+}
+
+function render(){
+  const q = query.trim().toLowerCase();
+  let shown = 0;
+  catalog.innerHTML = "";
+
+  categories().forEach(cat => {
+    const items = DATA.items.filter(it =>
+      it.category === cat &&
+      (!seller || it.seller === seller) &&
+      (!stockOnly || it.stock > 0) &&
+      (!q || (it.item + " " + (it.tags||[]).join(" ")).toLowerCase().includes(q))
+    );
+    if (!items.length) return;
+    shown += items.length;
+
+    const sec = document.createElement("section");
+    sec.className = "group";
+    const inStock = items.filter(it => it.stock > 0).length;
+    sec.innerHTML = `
+      <div class="group-head">
+        <h2 class="group-name">${cat}</h2>
+        <p class="group-note">${inStock} available</p>
+      </div>`;
+
+    items.forEach(it => {
+      const sold = it.stock === 0;   // เว้นว่างใน Notion = ไม่ระบุ ไม่ใช่ของหมด
+      const row = document.createElement("article");
+      row.className = "item" + (sold ? " sold" : "");
+      row.innerHTML = `
+        <h3 class="item-name">${it.item}</h3>
+        <p class="price">${money(it.price)}</p>
+        <div class="meta">
+          ${(it.tags||[]).map(t => `<span class="tag">${t}</span>`).join("")}
+          <button class="copy" type="button">Copy name</button>
+          ${it.seller ? `<button class="seller" type="button" ${it.discord ? `title="Copy ${it.discord}"` : "disabled"}>Sold by ${it.seller}</button>` : ""}
+        </div>
+        <p class="stock">${sold ? "Sold out" : it.stock == null ? "Available" : it.stock >= 99 ? "On request" : it.stock + " in stock"}</p>
+        ${it.note ? `<p class="note">${it.note}</p>` : ""}`;
+      row.prepend(thumb(it));
+      const sellerBtn = row.querySelector(".seller");
+      if (sellerBtn && it.discord) sellerBtn.addEventListener("click", e => {
+        navigator.clipboard.writeText(it.discord).then(() => {
+          e.target.textContent = "Copied " + it.discord;
+          setTimeout(() => (e.target.textContent = "Sold by " + it.seller), 1600);
+        });
+      });
+      row.querySelector(".copy").addEventListener("click", e => {
+        navigator.clipboard.writeText(it.item).then(() => {
+          e.target.textContent = "Copied";
+          setTimeout(() => (e.target.textContent = "Copy name"), 1400);
+        });
+      });
+      sec.appendChild(row);
+    });
+    catalog.appendChild(sec);
+  });
+
+  if (!shown){
+    catalog.innerHTML = `<div class="empty">
+      <p>Nothing matches that. Clear the filters to see the full list.</p>
+      <button class="btn" type="button" id="reset">Clear filters</button></div>`;
+    document.getElementById("reset").addEventListener("click", () => {
+      query = ""; stockOnly = false; seller = "";
+      document.getElementById("search").value = "";
+      document.getElementById("sellerFilter").value = "";
+      document.getElementById("sellerFilter").classList.remove("on");
+      document.getElementById("stockOnly").setAttribute("aria-pressed","false");
+      render();
+    });
   }
+
+  countEl.textContent = shown + " / " + DATA.items.length + " listings";
+  document.getElementById("updated").textContent = "Updated " + DATA.updated;
 }
-const live = new Set(Object.values(manifest).map(m => m.file));
-for (const f of await readdir(ICON_DIR).catch(() => [])) {
-  if (f !== ".gitkeep" && !live.has(f)) await unlink(path.join(ICON_DIR, f)).catch(() => {});
-}
 
-// ของที่มีสต็อกขึ้นก่อน แล้วเรียงตามชื่อ
-items.sort((a, b) => (b.stock > 0) - (a.stock > 0) || a.item.localeCompare(b.item));
+document.getElementById("search").addEventListener("input", e => { query = e.target.value; render(); });
+document.getElementById("sellerFilter").addEventListener("change", e => {
+  seller = e.target.value;
+  e.target.classList.toggle("on", !!seller);
+  render();
+});
+document.getElementById("stockOnly").addEventListener("click", e => {
+  stockOnly = !stockOnly;
+  e.target.setAttribute("aria-pressed", String(stockOnly));
+  render();
+});
 
-await writeFile(MANIFEST, JSON.stringify(manifest, null, 2));
-await writeFile(
-  "items.json",
-  JSON.stringify({ updated: new Date().toISOString().slice(0, 10), items }, null, 2)
-);
-
-console.log(`\nเขียน items.json แล้ว: ${items.length} รายการ`);
-if (noCategory.length) console.log(`ยังไม่ได้เลือก Category ${noCategory.length} รายการ (จะไม่ขึ้นบนเว็บ): ${noCategory.join(", ")}`);
-if (noDiscord.size) console.log(`ยังไม่มี Discord: ${[...noDiscord].join(", ")} (เว็บจะขึ้นชื่อคนขายแต่กดก๊อปไม่ได้)`);
-if (noIcon.length) console.log(`ยังไม่มีรูป ${noIcon.length} รายการ (ขึ้นกรอบตัวอักษรแทน): ${noIcon.join(", ")}`);
+fetch("items.json", { cache: "no-store" })
+  .then(r => r.ok ? r.json() : Promise.reject())
+  .then(d => { if (d && Array.isArray(d.items) && d.items.length) DATA = d; })
+  .catch(() => {})
+  .finally(() => { buildSellerUI(); render(); });
+</script>
+</body>
+</html>
