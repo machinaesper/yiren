@@ -1,13 +1,26 @@
 {
-  "updated": "2026-08-18",
+  "updated": "2026-08-19 00:29",
   "items": [
+    {
+      "category": "Gems",
+      "item": "Earth Gem",
+      "tags": [
+        "Gems"
+      ],
+      "price": "—",
+      "stock": 1,
+      "seller": "Yiren",
+      "discord": "norn11",
+      "note": "Earth Damage: +1% per refine",
+      "icon": "icons/3c0cc428b05180049580d5300ffdfeaa.png"
+    },
     {
       "category": "Equipment",
       "item": "Insect Carapace",
       "tags": [
         "accessory"
       ],
-      "price": "3500000",
+      "price": "—",
       "stock": 1,
       "seller": "Yiren",
       "discord": "norn11",
@@ -20,12 +33,25 @@
       "tags": [
         "card"
       ],
-      "price": "300000",
+      "price": "—",
       "stock": 2,
       "seller": "Anya",
       "discord": "machina.espr",
       "note": "HolyDamage: +6%\nShadowDamage: +6%\nPoisonDamage: +6%\nUndeadDamage: +6%",
       "icon": "icons/3c0cc428b051802c82bec13572ffab66.png"
+    },
+    {
+      "category": "Gems",
+      "item": "Tempo Gem",
+      "tags": [
+        "Gems"
+      ],
+      "price": "—",
+      "stock": 1,
+      "seller": "Yiren",
+      "discord": "norn11",
+      "note": "Atk Spd: +5% +1% per refine",
+      "icon": "icons/3c0cc428b05180aa929acaec135a1b2c.png"
     }
   ]
 }
