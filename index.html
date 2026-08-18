@@ -5,233 +5,259 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Yiren Masterworks — SpiritVale items catalog by Yiren</title>
 <meta name="description" content="Gear, cards, artifacts and grimoires from across Nevaris. Priced in game currency only, restocked as we farm.">
-<meta name="theme-color" content="#08050F">
+<meta name="theme-color" content="#0A0912">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Outfit:wght@300;400;500&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+Thai:wght@300;400&display=swap" rel="stylesheet">
 <style>
 :root{
-  --void:#08050F;
-  --panel:#100A1E;
-  --panel-2:#170F2B;
-  --ink:#EAE5FA;
-  --mute:#8C83B0;
-  --line:#2C2050;
-  --neon:#FF2E88;
-  --cyan:#22E5FF;
-  --amber:#FFC24B;
-  --dead:#544B70;
+  --base:#0A0912;
+  --ink:#F4F1FA;
+  --mute:#A69FBF;
+  --dim:#6E668C;
+  --glass:rgba(255,255,255,.035);
+  --glass-2:rgba(255,255,255,.06);
+  --edge:rgba(255,255,255,.10);
+
+  --peach:#FFB39C;
+  --gold:#FFD98E;
+  --mint:#7EE8C6;
+  --peri:#8FA8FF;
+
+  --sweep:linear-gradient(104deg,var(--peach),var(--gold) 32%,var(--mint) 64%,var(--peri));
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-text-size-adjust:100%}
 body{
-  background:
-    radial-gradient(900px 500px at 12% -8%, rgba(255,46,136,.14), transparent 60%),
-    radial-gradient(760px 460px at 92% 4%, rgba(34,229,255,.11), transparent 62%),
-    var(--void);
-  background-attachment:fixed;
+  background:var(--base);
   color:var(--ink);
-  font-family:"Chakra Petch",system-ui,sans-serif;
-  font-size:15px;line-height:1.55;
+  font-family:Outfit,"Noto Sans Thai",system-ui,sans-serif;
+  font-size:15px;font-weight:300;line-height:1.6;
   -webkit-font-smoothing:antialiased;
+  position:relative;
 }
-/* เส้นสแกนบาง ๆ ทับทั้งหน้า ให้ได้กลิ่นจอ CRT */
-body::after{
-  content:"";position:fixed;inset:0;z-index:99;pointer-events:none;
-  background:repeating-linear-gradient(to bottom,rgba(255,255,255,.028) 0 1px,transparent 1px 3px);
-  mix-blend-mode:overlay;
+/* ม่านเกรเดียนต์แบบ mesh ลอยอยู่หลังทุกอย่าง */
+body::before{
+  content:"";position:fixed;inset:-20%;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(46% 38% at 14% 6%,  rgba(255,179,156,.30), transparent 62%),
+    radial-gradient(42% 34% at 84% 12%, rgba(143,168,255,.28), transparent 64%),
+    radial-gradient(48% 40% at 68% 62%, rgba(126,232,198,.18), transparent 66%),
+    radial-gradient(38% 32% at 22% 88%, rgba(255,217,142,.16), transparent 64%);
+  filter:blur(30px);
 }
 .wrap{max-width:900px;margin:0 auto;padding:0 22px}
 
 /* ---------- หัวเว็บ ---------- */
-.masthead{padding:62px 0 34px;position:relative}
+.masthead{padding:76px 0 40px}
 .eyebrow{
   font-family:"JetBrains Mono",monospace;font-size:11px;
-  letter-spacing:.22em;text-transform:uppercase;color:var(--cyan);
-  display:flex;align-items:center;gap:9px;
+  letter-spacing:.24em;text-transform:uppercase;color:var(--mute);
+  display:flex;align-items:center;gap:10px;
 }
 .eyebrow::before{
-  content:"";width:7px;height:7px;background:var(--neon);
-  box-shadow:0 0 10px var(--neon);
+  content:"";width:26px;height:2px;border-radius:2px;background:var(--sweep);
 }
 .wordmark{
-  font-weight:700;text-transform:uppercase;
-  font-size:clamp(40px,9vw,80px);line-height:.92;letter-spacing:-.02em;
-  margin:16px 0 0;position:relative;
-  text-shadow:2px 0 rgba(255,46,136,.75), -2px 0 rgba(34,229,255,.65);
+  font-family:"Bricolage Grotesque",sans-serif;font-weight:700;
+  font-size:clamp(44px,9.5vw,86px);line-height:.94;letter-spacing:-.035em;
+  margin:18px 0 0;
+  background:var(--sweep);background-size:220% 100%;
+  -webkit-background-clip:text;background-clip:text;
+  color:transparent;
+  animation:drift 14s ease-in-out infinite alternate;
 }
-.wordmark em{font-style:normal;color:var(--neon);text-shadow:0 0 26px rgba(255,46,136,.55)}
+@keyframes drift{from{background-position:0% 50%} to{background-position:100% 50%}}
+.wordmark em{font-style:italic;font-weight:600}
 .thesis{
-  max-width:52ch;margin-top:18px;color:var(--mute);font-size:16px;
-  border-left:2px solid var(--line);padding-left:14px;
+  max-width:50ch;margin-top:20px;color:var(--mute);font-size:16.5px;
+  padding-left:16px;position:relative;
+}
+.thesis::before{
+  content:"";position:absolute;left:0;top:.35em;bottom:.35em;width:2px;
+  border-radius:2px;background:var(--sweep);opacity:.7;
 }
 
 /* ---------- แถบควบคุม ---------- */
 .controls{
-  position:sticky;top:0;z-index:30;
-  background:rgba(8,5,15,.82);backdrop-filter:blur(12px);
-  border-top:1px solid var(--line);
-  border-bottom:1px solid var(--neon);
-  box-shadow:0 0 26px rgba(255,46,136,.18);
-  padding:13px 0;
+  position:sticky;top:0;z-index:30;margin-top:34px;
+  background:rgba(10,9,18,.72);backdrop-filter:blur(16px) saturate(140%);
+  padding:14px 0;
+}
+.controls::after{
+  content:"";position:absolute;left:0;right:0;bottom:0;height:1px;
+  background:var(--sweep);opacity:.45;
 }
 .controls-inner{display:flex;flex-wrap:wrap;gap:9px;align-items:center}
 .search,.select,.chip{
-  font-family:"JetBrains Mono",monospace;font-size:12px;
-  background:var(--panel);border:1px solid var(--line);border-radius:0;
-  color:var(--ink);padding:9px 13px;
+  font:inherit;font-size:13.5px;border-radius:999px;
+  background:var(--glass);border:1px solid var(--edge);color:var(--ink);
+  padding:9px 16px;transition:.18s;
 }
-.search{flex:1 1 210px;min-width:0;letter-spacing:.03em;caret-color:var(--cyan)}
-.search::placeholder{color:var(--dead);text-transform:uppercase;letter-spacing:.1em}
-.select,.chip{color:var(--mute);text-transform:uppercase;letter-spacing:.1em;cursor:pointer;transition:.15s}
-.select:hover,.chip:hover{color:var(--cyan);border-color:var(--cyan)}
-.select.on{color:var(--cyan);border-color:var(--cyan);box-shadow:0 0 14px rgba(34,229,255,.25)}
-.chip[aria-pressed="true"]{
-  color:var(--void);background:var(--neon);border-color:var(--neon);
-  box-shadow:0 0 18px rgba(255,46,136,.5);
+.search{flex:1 1 210px;min-width:0}
+.search::placeholder{color:var(--dim)}
+.select,.chip{color:var(--mute);cursor:pointer}
+.select:hover,.chip:hover{background:var(--glass-2);color:var(--ink)}
+.select.on,.chip[aria-pressed="true"]{
+  color:#141126;border-color:transparent;background:var(--sweep);font-weight:500;
 }
 .search:focus-visible,.select:focus-visible,.chip:focus-visible,.btn:focus-visible,
-.copy:focus-visible,.seller:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.copy:focus-visible,.seller:focus-visible{outline:2px solid var(--peri);outline-offset:2px}
 .count{
-  font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.12em;
-  color:var(--dead);margin-left:auto;white-space:nowrap;text-transform:uppercase;
+  font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.1em;
+  color:var(--dim);margin-left:auto;white-space:nowrap;text-transform:uppercase;
 }
 
 /* ---------- หมวด ---------- */
-.group{margin-top:46px}
-.group-head{
-  display:flex;align-items:center;gap:14px;
-  padding-bottom:9px;border-bottom:1px solid var(--line);
-}
+.group{margin-top:50px}
+.group-head{display:flex;align-items:center;gap:14px;margin-bottom:14px}
 .group-name{
-  font-weight:600;text-transform:uppercase;font-size:22px;letter-spacing:.06em;
-  color:var(--ink);position:relative;padding-left:14px;
+  font-family:"Bricolage Grotesque",sans-serif;font-weight:600;
+  font-size:24px;letter-spacing:-.02em;
+  background:var(--sweep);-webkit-background-clip:text;background-clip:text;color:transparent;
 }
-.group-name::before{
-  content:"";position:absolute;left:0;top:.28em;bottom:.28em;width:4px;
-  background:var(--cyan);box-shadow:0 0 12px var(--cyan);
+.group-head::after{
+  content:"";flex:1;height:1px;
+  background:linear-gradient(90deg,var(--edge),transparent);
 }
 .group-note{
-  font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.12em;
-  color:var(--amber);margin-left:auto;text-transform:uppercase;
+  font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.1em;
+  color:var(--dim);text-transform:uppercase;order:3;
 }
 
 /* ---------- แถวไอเทม ---------- */
 .item{
-  display:grid;grid-template-columns:54px 1fr auto;
+  display:grid;grid-template-columns:56px 1fr auto;
   grid-template-areas:"thumb name price" "thumb meta stock";
-  column-gap:16px;row-gap:6px;align-items:center;
-  padding:15px 16px;margin-top:9px;
-  background:var(--panel);
-  border:1px solid var(--line);
-  clip-path:polygon(0 0, calc(100% - 13px) 0, 100% 13px, 100% 100%, 13px 100%, 0 calc(100% - 13px));
-  position:relative;transition:background .16s,border-color .16s;
+  column-gap:18px;row-gap:6px;align-items:center;
+  padding:16px 20px;margin-bottom:10px;border-radius:18px;
+  background:var(--glass);backdrop-filter:blur(6px);
+  position:relative;transition:background .2s,transform .2s;
 }
-.item:hover{background:var(--panel-2);border-color:var(--neon)}
+/* ขอบเกรเดียนต์ 1px ด้วยเทคนิค mask */
 .item::before{
-  content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
-  background:var(--neon);opacity:0;transition:opacity .16s;
+  content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;
+  background:var(--sweep);opacity:.22;transition:opacity .2s;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  mask-composite:exclude;pointer-events:none;
 }
-.item:hover::before{opacity:1;box-shadow:0 0 16px var(--neon)}
+.item:hover{background:var(--glass-2);transform:translateY(-1px)}
+.item:hover::before{opacity:.85}
 
 .thumb{
-  grid-area:thumb;width:54px;height:54px;
-  border:1px solid var(--line);background:var(--void);
+  grid-area:thumb;width:56px;height:56px;border-radius:14px;
+  background:rgba(255,255,255,.05);border:1px solid var(--edge);
   display:grid;place-items:center;overflow:hidden;
 }
-.item:hover .thumb{border-color:var(--cyan);box-shadow:0 0 14px rgba(34,229,255,.28)}
 .thumb img{width:100%;height:100%;object-fit:contain;display:block}
-.monogram{font-weight:700;font-size:22px;color:var(--dead)}
-
-.item-name{grid-area:name;font-weight:500;font-size:19px;letter-spacing:.01em;align-self:end}
-.price{
-  grid-area:price;font-family:"JetBrains Mono",monospace;font-weight:700;font-size:16px;
-  color:var(--cyan);white-space:nowrap;align-self:end;text-shadow:0 0 18px rgba(34,229,255,.35);
+.monogram{
+  font-family:"Bricolage Grotesque",sans-serif;font-weight:700;font-size:24px;
+  background:var(--sweep);-webkit-background-clip:text;background-clip:text;color:transparent;opacity:.75;
 }
-.meta{grid-area:meta;display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px;color:var(--mute);align-self:start}
+
+.item-name{
+  grid-area:name;font-family:"Bricolage Grotesque",sans-serif;font-weight:600;
+  font-size:19px;letter-spacing:-.015em;align-self:end;
+}
+.price{
+  grid-area:price;font-family:"JetBrains Mono",monospace;font-weight:500;font-size:16px;
+  white-space:nowrap;align-self:end;
+  background:var(--sweep);-webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.meta{grid-area:meta;display:flex;flex-wrap:wrap;gap:9px;align-items:center;font-size:13px;color:var(--mute);align-self:start}
 .stock{
-  grid-area:stock;font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.1em;
-  text-transform:uppercase;color:var(--mute);white-space:nowrap;align-self:start;text-align:right;
+  grid-area:stock;font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--dim);white-space:nowrap;align-self:start;text-align:right;
 }
 .tag{
-  font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;
-  color:var(--cyan);border:1px solid rgba(34,229,255,.4);background:rgba(34,229,255,.07);padding:2px 7px;
+  font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--mute);background:var(--glass-2);border:1px solid var(--edge);
+  border-radius:999px;padding:3px 10px;
 }
 .copy,.seller{
-  font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
-  color:var(--dead);background:none;border:none;padding:0;cursor:pointer;
-  border-bottom:1px solid transparent;transition:.15s;
+  font:inherit;font-size:12.5px;color:var(--dim);
+  background:none;border:none;padding:0;cursor:pointer;
+  border-bottom:1px solid transparent;transition:.16s;
 }
-.copy:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
-.seller:hover{color:var(--amber);border-bottom-color:var(--amber)}
-.seller[disabled]{cursor:default;color:var(--dead)}
+.copy:hover{color:var(--mint);border-bottom-color:var(--mint)}
+.seller:hover{color:var(--peach);border-bottom-color:var(--peach)}
+.seller[disabled]{cursor:default;color:var(--dim)}
 .seller[disabled]:hover{border-bottom-color:transparent}
 
-.item.sold{background:transparent;border-color:#1E1636}
-.item.sold:hover{border-color:#1E1636;background:transparent}
-.item.sold .item-name{color:var(--dead)}
-.item.sold .price{color:var(--dead);text-shadow:none;text-decoration:line-through;text-decoration-color:var(--neon)}
-.item.sold .tag{color:var(--dead);border-color:#241B42;background:transparent}
-.item.sold .thumb{opacity:.3;filter:grayscale(1)}
-.item.sold .stock{color:var(--neon)}
-.item.sold::before{display:none}
+.item.sold{background:transparent}
+.item.sold::before{opacity:.07}
+.item.sold:hover{background:transparent;transform:none}
+.item.sold:hover::before{opacity:.14}
+.item.sold .item-name{color:var(--dim)}
+.item.sold .price{background:none;color:var(--dim);text-decoration:line-through}
+.item.sold .thumb{opacity:.35;filter:grayscale(.8)}
+.item.sold .monogram{opacity:.4}
 
-.empty{padding:64px 0;text-align:center;color:var(--mute)}
+.empty{padding:70px 0;text-align:center;color:var(--mute)}
 .btn{
-  font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.12em;text-transform:uppercase;
-  background:var(--neon);color:var(--void);border:none;padding:11px 22px;cursor:pointer;margin-top:16px;
-  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 9px 100%, 0 calc(100% - 9px));
+  font:inherit;font-size:14px;font-weight:500;color:#141126;
+  background:var(--sweep);border:none;border-radius:999px;
+  padding:11px 24px;cursor:pointer;margin-top:18px;
 }
-.btn:hover{background:var(--cyan)}
+.btn:hover{filter:brightness(1.08)}
 
 /* ---------- กล่องติดต่อ ---------- */
 .order{
-  margin:64px auto 0;max-width:900px;padding:30px;
-  background:var(--panel);border:1px solid var(--line);
-  clip-path:polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+  margin:72px auto 0;max-width:900px;padding:32px;border-radius:24px;
+  background:var(--glass);backdrop-filter:blur(6px);position:relative;
+}
+.order::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;
+  background:var(--sweep);opacity:.35;pointer-events:none;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  mask-composite:exclude;
 }
 .order h2{
-  font-weight:700;text-transform:uppercase;font-size:22px;letter-spacing:.08em;margin-bottom:8px;
-  color:var(--neon);text-shadow:0 0 22px rgba(255,46,136,.4);
+  font-family:"Bricolage Grotesque",sans-serif;font-weight:600;font-size:26px;
+  letter-spacing:-.02em;margin-bottom:8px;
+  background:var(--sweep);-webkit-background-clip:text;background-clip:text;color:transparent;
 }
 .order p{color:var(--mute);max-width:60ch}
-.channels{display:flex;flex-wrap:wrap;gap:9px;margin-top:20px}
+.channels{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
 .channel{
-  display:flex;flex-direction:column;gap:3px;
-  border:1px solid var(--line);background:var(--void);padding:11px 16px;
+  display:flex;flex-direction:column;gap:2px;border-radius:14px;
+  background:var(--glass-2);border:1px solid var(--edge);padding:12px 18px;
 }
 .channel span{
-  font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.16em;
-  text-transform:uppercase;color:var(--amber);
+  font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--dim);
 }
-.channel b{font-family:"JetBrains Mono",monospace;font-weight:400;font-size:14px;color:var(--ink)}
+.channel b{font-weight:500;font-size:15px;color:var(--ink)}
 
 footer{
-  padding:36px 0 60px;color:var(--dead);font-size:12px;
-  font-family:"JetBrains Mono",monospace;letter-spacing:.06em;
+  padding:40px 0 64px;color:var(--dim);font-size:12.5px;
   display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
 }
 
 @media (max-width:560px){
-  .masthead{padding:42px 0 26px}
+  .masthead{padding:52px 0 28px}
   .item{
-    grid-template-columns:46px 1fr;
+    grid-template-columns:48px 1fr;
     grid-template-areas:"thumb name" "thumb price" "meta meta" "stock stock";
-    padding:14px;row-gap:5px;
+    padding:16px;row-gap:5px;
   }
-  .thumb{width:46px;height:46px}
+  .thumb{width:48px;height:48px;border-radius:12px}
   .price{align-self:start;text-align:left}
   .stock{text-align:left}
-  .meta{margin-top:8px}
-  .order{padding:22px}
+  .meta{margin-top:9px}
+  .order{padding:24px}
 }
-@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important}
+}
 </style>
 </head>
 <body>
 
 <header class="masthead wrap">
-  <p class="eyebrow">SpiritVale // Nevaris</p>
+  <p class="eyebrow">SpiritVale · Nevaris</p>
   <h1 class="wordmark">Yiren <em>Masterworks</em></h1>
   <p class="thesis">Gear, cards, artifacts and grimoires pulled from across Nevaris. Priced in game currency only, restocked as we farm.</p>
 </header>
@@ -275,9 +301,9 @@ const SAMPLE = {
     { category:"Artifacts", item:"Artifact set piece — 2pc", tags:["artifact"], price:"1,100,000g", stock:1, seller:"Milo", discord:"milo_sv" },
     { category:"Grimoires", item:"Wizard grimoire", tags:["grimoire","wizard"], price:"640,000g", stock:0, seller:"Milo", discord:"milo_sv" },
     { category:"Consumables", item:"Boss Lure ×5", tags:["consumable"], price:"180,000g", stock:99, note:"Crafted to order", seller:"Yiren", discord:"norn" },
-    { category:"Materials", item:"Vulcanite Crystal ×10", tags:["refining"], price:"340,000g", stock:4, seller:"Anya", discord:"machina.espr" },
+    { category:"Materials", item:"Vulcanite Crystal ×10", tags:["refining"], price:"340,000g", stock:4, seller:"Kessa", discord:"kessa.sv" },
     { category:"Materials", item:"Essence of Flow ×20", tags:["essence"], price:"260,000g", stock:3, seller:"Yiren", discord:"norn" },
-    { category:"Cosmetics", item:"Weapon skin", tags:["cosmetic"], price:"500,000g", stock:1, seller:"Whiite", discord:"whiitecrown" }
+    { category:"Cosmetics", item:"Weapon skin", tags:["cosmetic"], price:"500,000g", stock:1, seller:"Milo", discord:"milo_sv" }
   ]
 };
 
