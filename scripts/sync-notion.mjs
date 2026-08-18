@@ -67,6 +67,8 @@ function toRow(page) {
     stock: typeof p["Stock"]?.number === "number" ? p["Stock"].number : 0,
     tags: (p["Tags"]?.multi_select || []).map(t => t.name),
     note: text(p["Note"]),
+    seller: p["Seller"]?.select?.name || text(p["Seller"]),
+    discord: text(p["Discord"]),
     file: firstFile(p["Icon"]),
     listed: p["Listed"]?.checkbox !== false, // ไม่มีคอลัมน์นี้ = ถือว่าขึ้นเว็บ
   };
@@ -118,20 +120,33 @@ await mkdir("data", { recursive: true });
 const manifest = await readFile(MANIFEST, "utf8").then(JSON.parse).catch(() => ({}));
 const rows = (await fetchRows()).map(toRow).filter(r => r.listed && r.item);
 
+/* Discord พิมพ์ครั้งเดียวต่อคนพอ แถวอื่นของคนเดียวกันเติมให้เอง */
+const discordBySeller = new Map();
+for (const r of rows) {
+  if (r.seller && r.discord && !discordBySeller.has(r.seller)) discordBySeller.set(r.seller, r.discord);
+}
+
 const items = [];
 const noIcon = [];
 const noCategory = [];
+const noDiscord = new Set();
 
 for (const row of rows) {
   const icon = await syncIcon(row, manifest);
   if (!icon) noIcon.push(row.item);
   if (!row.category) noCategory.push(row.item);
+
+  const discord = row.discord || discordBySeller.get(row.seller) || "";
+  if (row.seller && !discord) noDiscord.add(row.seller);
+
   items.push({
     category: row.category,
     item: row.item,
     tags: row.tags,
     price: row.price,
     stock: row.stock,
+    ...(row.seller ? { seller: row.seller } : {}),
+    ...(discord ? { discord } : {}),
     ...(row.note ? { note: row.note } : {}),
     ...(icon ? { icon: `${ICON_DIR}/${icon}` } : {}),
   });
@@ -160,4 +175,5 @@ await writeFile(
 
 console.log(`\nเขียน items.json แล้ว: ${items.length} รายการ`);
 if (noCategory.length) console.log(`ยังไม่ได้เลือก Category ${noCategory.length} รายการ (จะไม่ขึ้นบนเว็บ): ${noCategory.join(", ")}`);
+if (noDiscord.size) console.log(`ยังไม่มี Discord: ${[...noDiscord].join(", ")} (เว็บจะขึ้นชื่อคนขายแต่กดก๊อปไม่ได้)`);
 if (noIcon.length) console.log(`ยังไม่มีรูป ${noIcon.length} รายการ (ขึ้นกรอบตัวอักษรแทน): ${noIcon.join(", ")}`);
