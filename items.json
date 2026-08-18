@@ -4,9 +4,14 @@
     {
       "category": "Equipment",
       "item": "Insect Carapace",
-      "tags": [],
-      "price": "—",
-      "stock": 0,
+      "tags": [
+        "accessory"
+      ],
+      "price": "TBA",
+      "stock": 1,
+      "seller": "Yiren",
+      "discord": "norn11",
+      "note": "VIT+3\nMDEF+4",
       "icon": "icons/3bfcc428b051806e9b2ce882f5997c5d.png"
     }
   ]
