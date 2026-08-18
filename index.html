@@ -5,92 +5,225 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Yiren Masterworks — SpiritVale items catalog by Yiren</title>
 <meta name="description" content="Gear, cards, artifacts and grimoires from across Nevaris. Priced in game currency only, restocked as we farm.">
+<meta name="theme-color" content="#08050F">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Spectral:wght@200;300;400&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+Thai:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --paper:#F6F8F8; --card:#FFFFFF; --ink:#141A1C; --mute:#6E7A7C;
-  --line:#E2E8E8; --spectral:#2F6F68; --spectral-soft:#E8F1EF; --gone:#A3ACAE; --r:3px;
+  --void:#08050F;
+  --panel:#100A1E;
+  --panel-2:#170F2B;
+  --ink:#EAE5FA;
+  --mute:#8C83B0;
+  --line:#2C2050;
+  --neon:#FF2E88;
+  --cyan:#22E5FF;
+  --amber:#FFC24B;
+  --dead:#544B70;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-text-size-adjust:100%}
-body{background:var(--paper);color:var(--ink);font-family:"IBM Plex Sans","Noto Sans Thai",system-ui,sans-serif;font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
-.wrap{max-width:860px;margin:0 auto;padding:0 24px}
-
-.masthead{padding:64px 0 40px}
-.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--spectral)}
-.wordmark{font-family:Spectral,"Noto Sans Thai",serif;font-weight:200;font-size:clamp(38px,7vw,62px);line-height:1.05;letter-spacing:-.01em;margin:14px 0 0}
-.wordmark em{font-style:italic;font-weight:300}
-.thesis{max-width:46ch;margin-top:18px;color:var(--mute);font-size:16px}
-
-.controls{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--paper) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:14px 0}
-.controls-inner{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-.search{flex:1 1 220px;min-width:0;font:inherit;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:9px 12px}
-.search::placeholder{color:var(--gone)}
-.search:focus-visible,.chip:focus-visible,.btn:focus-visible,.copy:focus-visible{outline:2px solid var(--spectral);outline-offset:2px}
-.chip{font:inherit;font-size:13px;background:transparent;color:var(--mute);border:1px solid var(--line);border-radius:99px;padding:6px 13px;cursor:pointer;transition:color .15s,border-color .15s,background .15s}
-.chip:hover{color:var(--ink);border-color:var(--gone)}
-.chip[aria-pressed="true"]{background:var(--spectral);border-color:var(--spectral);color:#fff}
-.select{font:inherit;font-size:13px;color:var(--mute);background:var(--card);border:1px solid var(--line);border-radius:99px;padding:6px 11px;cursor:pointer}
-.select:focus-visible{outline:2px solid var(--spectral);outline-offset:2px}
-.select.on{border-color:var(--spectral);color:var(--spectral)}
-.seller{font:inherit;font-size:13px;color:var(--mute);background:none;border:none;padding:0;cursor:pointer;border-bottom:1px solid transparent}
-.seller:hover{color:var(--spectral);border-bottom-color:var(--spectral)}
-.seller[disabled]{cursor:default;color:var(--mute)}
-.count{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--gone);margin-left:auto;white-space:nowrap}
-
-.group{margin-top:52px}
-.group-head{display:flex;align-items:baseline;gap:12px;padding-bottom:12px;border-bottom:1px solid var(--line)}
-.group-name{font-family:Spectral,serif;font-weight:300;font-size:25px;letter-spacing:-.01em}
-.group-note{font-size:13px;color:var(--gone);margin-left:auto;font-family:"IBM Plex Mono",monospace}
-
-.item{
-  display:grid;grid-template-columns:48px 1fr auto;
-  grid-template-areas:"thumb name price" "thumb meta stock";
-  column-gap:16px;row-gap:5px;align-items:center;
-  padding:16px 0 16px 16px;border-bottom:1px solid var(--line);position:relative;
+body{
+  background:
+    radial-gradient(900px 500px at 12% -8%, rgba(255,46,136,.14), transparent 60%),
+    radial-gradient(760px 460px at 92% 4%, rgba(34,229,255,.11), transparent 62%),
+    var(--void);
+  background-attachment:fixed;
+  color:var(--ink);
+  font-family:"Chakra Petch",system-ui,sans-serif;
+  font-size:15px;line-height:1.55;
+  -webkit-font-smoothing:antialiased;
 }
-.item::before{content:"";position:absolute;left:0;top:16px;bottom:16px;width:2px;background:var(--spectral);opacity:0;transition:opacity .18s}
-.item:hover::before{opacity:.5}
-.thumb{grid-area:thumb;width:48px;height:48px;border:1px solid var(--line);border-radius:var(--r);background:var(--card);display:grid;place-items:center;overflow:hidden}
+/* เส้นสแกนบาง ๆ ทับทั้งหน้า ให้ได้กลิ่นจอ CRT */
+body::after{
+  content:"";position:fixed;inset:0;z-index:99;pointer-events:none;
+  background:repeating-linear-gradient(to bottom,rgba(255,255,255,.028) 0 1px,transparent 1px 3px);
+  mix-blend-mode:overlay;
+}
+.wrap{max-width:900px;margin:0 auto;padding:0 22px}
+
+/* ---------- หัวเว็บ ---------- */
+.masthead{padding:62px 0 34px;position:relative}
+.eyebrow{
+  font-family:"JetBrains Mono",monospace;font-size:11px;
+  letter-spacing:.22em;text-transform:uppercase;color:var(--cyan);
+  display:flex;align-items:center;gap:9px;
+}
+.eyebrow::before{
+  content:"";width:7px;height:7px;background:var(--neon);
+  box-shadow:0 0 10px var(--neon);
+}
+.wordmark{
+  font-weight:700;text-transform:uppercase;
+  font-size:clamp(40px,9vw,80px);line-height:.92;letter-spacing:-.02em;
+  margin:16px 0 0;position:relative;
+  text-shadow:2px 0 rgba(255,46,136,.75), -2px 0 rgba(34,229,255,.65);
+}
+.wordmark em{font-style:normal;color:var(--neon);text-shadow:0 0 26px rgba(255,46,136,.55)}
+.thesis{
+  max-width:52ch;margin-top:18px;color:var(--mute);font-size:16px;
+  border-left:2px solid var(--line);padding-left:14px;
+}
+
+/* ---------- แถบควบคุม ---------- */
+.controls{
+  position:sticky;top:0;z-index:30;
+  background:rgba(8,5,15,.82);backdrop-filter:blur(12px);
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--neon);
+  box-shadow:0 0 26px rgba(255,46,136,.18);
+  padding:13px 0;
+}
+.controls-inner{display:flex;flex-wrap:wrap;gap:9px;align-items:center}
+.search,.select,.chip{
+  font-family:"JetBrains Mono",monospace;font-size:12px;
+  background:var(--panel);border:1px solid var(--line);border-radius:0;
+  color:var(--ink);padding:9px 13px;
+}
+.search{flex:1 1 210px;min-width:0;letter-spacing:.03em;caret-color:var(--cyan)}
+.search::placeholder{color:var(--dead);text-transform:uppercase;letter-spacing:.1em}
+.select,.chip{color:var(--mute);text-transform:uppercase;letter-spacing:.1em;cursor:pointer;transition:.15s}
+.select:hover,.chip:hover{color:var(--cyan);border-color:var(--cyan)}
+.select.on{color:var(--cyan);border-color:var(--cyan);box-shadow:0 0 14px rgba(34,229,255,.25)}
+.chip[aria-pressed="true"]{
+  color:var(--void);background:var(--neon);border-color:var(--neon);
+  box-shadow:0 0 18px rgba(255,46,136,.5);
+}
+.search:focus-visible,.select:focus-visible,.chip:focus-visible,.btn:focus-visible,
+.copy:focus-visible,.seller:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.count{
+  font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.12em;
+  color:var(--dead);margin-left:auto;white-space:nowrap;text-transform:uppercase;
+}
+
+/* ---------- หมวด ---------- */
+.group{margin-top:46px}
+.group-head{
+  display:flex;align-items:center;gap:14px;
+  padding-bottom:9px;border-bottom:1px solid var(--line);
+}
+.group-name{
+  font-weight:600;text-transform:uppercase;font-size:22px;letter-spacing:.06em;
+  color:var(--ink);position:relative;padding-left:14px;
+}
+.group-name::before{
+  content:"";position:absolute;left:0;top:.28em;bottom:.28em;width:4px;
+  background:var(--cyan);box-shadow:0 0 12px var(--cyan);
+}
+.group-note{
+  font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.12em;
+  color:var(--amber);margin-left:auto;text-transform:uppercase;
+}
+
+/* ---------- แถวไอเทม ---------- */
+.item{
+  display:grid;grid-template-columns:54px 1fr auto;
+  grid-template-areas:"thumb name price" "thumb meta stock";
+  column-gap:16px;row-gap:6px;align-items:center;
+  padding:15px 16px;margin-top:9px;
+  background:var(--panel);
+  border:1px solid var(--line);
+  clip-path:polygon(0 0, calc(100% - 13px) 0, 100% 13px, 100% 100%, 13px 100%, 0 calc(100% - 13px));
+  position:relative;transition:background .16s,border-color .16s;
+}
+.item:hover{background:var(--panel-2);border-color:var(--neon)}
+.item::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:var(--neon);opacity:0;transition:opacity .16s;
+}
+.item:hover::before{opacity:1;box-shadow:0 0 16px var(--neon)}
+
+.thumb{
+  grid-area:thumb;width:54px;height:54px;
+  border:1px solid var(--line);background:var(--void);
+  display:grid;place-items:center;overflow:hidden;
+}
+.item:hover .thumb{border-color:var(--cyan);box-shadow:0 0 14px rgba(34,229,255,.28)}
 .thumb img{width:100%;height:100%;object-fit:contain;display:block}
-.monogram{font-family:Spectral,serif;font-size:21px;font-weight:300;color:var(--gone)}
-.item-name{grid-area:name;font-family:Spectral,"Noto Sans Thai",serif;font-size:19px;font-weight:400;align-self:end}
-.price{grid-area:price;font-family:"IBM Plex Mono",monospace;font-size:16px;white-space:nowrap;align-self:end}
+.monogram{font-weight:700;font-size:22px;color:var(--dead)}
+
+.item-name{grid-area:name;font-weight:500;font-size:19px;letter-spacing:.01em;align-self:end}
+.price{
+  grid-area:price;font-family:"JetBrains Mono",monospace;font-weight:700;font-size:16px;
+  color:var(--cyan);white-space:nowrap;align-self:end;text-shadow:0 0 18px rgba(34,229,255,.35);
+}
 .meta{grid-area:meta;display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px;color:var(--mute);align-self:start}
-.stock{grid-area:stock;font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--mute);white-space:nowrap;align-self:start;text-align:right}
-.tag{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--spectral);background:var(--spectral-soft);border-radius:var(--r);padding:2px 7px}
-.copy{font:inherit;font-size:12px;color:var(--gone);background:none;border:none;padding:0;cursor:pointer;border-bottom:1px solid transparent}
-.copy:hover{color:var(--spectral);border-bottom-color:var(--spectral)}
-.item.sold .item-name,.item.sold .price{color:var(--gone)}
-.item.sold .price{text-decoration:line-through}
-.item.sold .tag{color:var(--gone);background:#EFF2F2}
-.item.sold .thumb{opacity:.45}
+.stock{
+  grid-area:stock;font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--mute);white-space:nowrap;align-self:start;text-align:right;
+}
+.tag{
+  font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--cyan);border:1px solid rgba(34,229,255,.4);background:rgba(34,229,255,.07);padding:2px 7px;
+}
+.copy,.seller{
+  font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--dead);background:none;border:none;padding:0;cursor:pointer;
+  border-bottom:1px solid transparent;transition:.15s;
+}
+.copy:hover{color:var(--cyan);border-bottom-color:var(--cyan)}
+.seller:hover{color:var(--amber);border-bottom-color:var(--amber)}
+.seller[disabled]{cursor:default;color:var(--dead)}
+.seller[disabled]:hover{border-bottom-color:transparent}
+
+.item.sold{background:transparent;border-color:#1E1636}
+.item.sold:hover{border-color:#1E1636;background:transparent}
+.item.sold .item-name{color:var(--dead)}
+.item.sold .price{color:var(--dead);text-shadow:none;text-decoration:line-through;text-decoration-color:var(--neon)}
+.item.sold .tag{color:var(--dead);border-color:#241B42;background:transparent}
+.item.sold .thumb{opacity:.3;filter:grayscale(1)}
+.item.sold .stock{color:var(--neon)}
 .item.sold::before{display:none}
 
 .empty{padding:64px 0;text-align:center;color:var(--mute)}
-.btn{font:inherit;font-size:14px;background:var(--ink);color:#fff;border:none;border-radius:var(--r);padding:9px 18px;cursor:pointer;margin-top:14px}
+.btn{
+  font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.12em;text-transform:uppercase;
+  background:var(--neon);color:var(--void);border:none;padding:11px 22px;cursor:pointer;margin-top:16px;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 9px 100%, 0 calc(100% - 9px));
+}
+.btn:hover{background:var(--cyan)}
 
-.order{margin:72px auto 0;max-width:812px;padding:32px;background:var(--card);border:1px solid var(--line);border-radius:var(--r)}
-.order h2{font-family:Spectral,serif;font-weight:300;font-size:24px;margin-bottom:6px}
-.order p{color:var(--mute);max-width:52ch}
-.channels{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
-.channel{display:flex;flex-direction:column;gap:2px;border:1px solid var(--line);border-radius:var(--r);padding:11px 15px}
-.channel span{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--gone)}
-.channel b{font-weight:500;font-size:15px}
+/* ---------- กล่องติดต่อ ---------- */
+.order{
+  margin:64px auto 0;max-width:900px;padding:30px;
+  background:var(--panel);border:1px solid var(--line);
+  clip-path:polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+}
+.order h2{
+  font-weight:700;text-transform:uppercase;font-size:22px;letter-spacing:.08em;margin-bottom:8px;
+  color:var(--neon);text-shadow:0 0 22px rgba(255,46,136,.4);
+}
+.order p{color:var(--mute);max-width:60ch}
+.channels{display:flex;flex-wrap:wrap;gap:9px;margin-top:20px}
+.channel{
+  display:flex;flex-direction:column;gap:3px;
+  border:1px solid var(--line);background:var(--void);padding:11px 16px;
+}
+.channel span{
+  font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--amber);
+}
+.channel b{font-family:"JetBrains Mono",monospace;font-weight:400;font-size:14px;color:var(--ink)}
 
-footer{padding:40px 0 64px;color:var(--gone);font-size:13px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+footer{
+  padding:36px 0 60px;color:var(--dead);font-size:12px;
+  font-family:"JetBrains Mono",monospace;letter-spacing:.06em;
+  display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
+}
 
 @media (max-width:560px){
-  .masthead{padding:44px 0 30px}
-  .item{grid-template-columns:44px 1fr;grid-template-areas:"thumb name" "thumb price" "meta meta" "stock stock";padding-left:14px;row-gap:4px}
-  .thumb{width:44px;height:44px}
-  .item-name{align-self:end}
+  .masthead{padding:42px 0 26px}
+  .item{
+    grid-template-columns:46px 1fr;
+    grid-template-areas:"thumb name" "thumb price" "meta meta" "stock stock";
+    padding:14px;row-gap:5px;
+  }
+  .thumb{width:46px;height:46px}
   .price{align-self:start;text-align:left}
   .stock{text-align:left}
-  .meta{margin-top:6px}
-  .order{padding:24px}
+  .meta{margin-top:8px}
+  .order{padding:22px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -98,7 +231,7 @@ footer{padding:40px 0 64px;color:var(--gone);font-size:13px;display:flex;justify
 <body>
 
 <header class="masthead wrap">
-  <p class="eyebrow">SpiritVale · Nevaris</p>
+  <p class="eyebrow">SpiritVale // Nevaris</p>
   <h1 class="wordmark">Yiren <em>Masterworks</em></h1>
   <p class="thesis">Gear, cards, artifacts and grimoires pulled from across Nevaris. Priced in game currency only, restocked as we farm.</p>
 </header>
@@ -142,9 +275,9 @@ const SAMPLE = {
     { category:"Artifacts", item:"Artifact set piece — 2pc", tags:["artifact"], price:"1,100,000g", stock:1, seller:"Milo", discord:"milo_sv" },
     { category:"Grimoires", item:"Wizard grimoire", tags:["grimoire","wizard"], price:"640,000g", stock:0, seller:"Milo", discord:"milo_sv" },
     { category:"Consumables", item:"Boss Lure ×5", tags:["consumable"], price:"180,000g", stock:99, note:"Crafted to order", seller:"Yiren", discord:"norn" },
-    { category:"Materials", item:"Vulcanite Crystal ×10", tags:["refining"], price:"340,000g", stock:4, seller:"Kessa", discord:"kessa.sv" },
+    { category:"Materials", item:"Vulcanite Crystal ×10", tags:["refining"], price:"340,000g", stock:4, seller:"Anya", discord:"machina.espr" },
     { category:"Materials", item:"Essence of Flow ×20", tags:["essence"], price:"260,000g", stock:3, seller:"Yiren", discord:"norn" },
-    { category:"Cosmetics", item:"Weapon skin", tags:["cosmetic"], price:"500,000g", stock:1, seller:"Milo", discord:"milo_sv" }
+    { category:"Cosmetics", item:"Weapon skin", tags:["cosmetic"], price:"500,000g", stock:1, seller:"Whiite", discord:"whiitecrown" }
   ]
 };
 
