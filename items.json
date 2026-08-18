@@ -7,7 +7,7 @@
       "tags": [
         "accessory"
       ],
-      "price": "TBA",
+      "price": "3500000",
       "stock": 1,
       "seller": "Yiren",
       "discord": "norn11",
@@ -20,12 +20,12 @@
       "tags": [
         "card"
       ],
-      "price": "—",
+      "price": "300000",
       "stock": 2,
       "seller": "Anya",
       "discord": "machina.espr",
       "note": "HolyDamage: +6%\nShadowDamage: +6%\nPoisonDamage: +6%\nUndeadDamage: +6%",
-      "icon": "icons/3c0cc428b051802c82bec13572ffab66.jpeg"
+      "icon": "icons/3c0cc428b051802c82bec13572ffab66.png"
     }
   ]
 }
