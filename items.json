@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-20 11:06",
+  "updated": "2026-08-20 12:03",
   "items": [
     {
       "category": "Gems",
@@ -34,7 +34,7 @@
         "card"
       ],
       "price": "300000",
-      "stock": 2,
+      "stock": 3,
       "seller": "Anya",
       "discord": "machina.espr",
       "note": "HolyDamage: +6%\nShadowDamage: +6%\nPoisonDamage: +6%\nUndeadDamage: +6%",
